@@ -198,41 +198,7 @@ exports.getEmployeeById = async (req, res) => {
   }
 };
 
-// ==========================================
-// ฟังก์ชันอัปเดตข้อมูลพนักงาน (PUT /api/employees/:id)
-// ==========================================
-exports.updateEmployee = async (req, res) => {
-  const data = req.body;
-  const id = req.params.id;
 
-  try {
-    // ตัวอย่างนี้เป็นการอัปเดตเฉพาะตารางหลัก (employees) ก่อน เพื่อความรวดเร็ว
-    await pool.execute(
-      `UPDATE employees SET 
-        company_prefix = ?, position = ?, department_id = ?, role_id = ?, email = ?,
-        title_th = ?, first_name_th = ?, last_name_th = ?, 
-        title_en = ?, first_name_en = ?, last_name_en = ?, nickname = ?,
-        date_of_birth = ?, national_id = ?, height = ?, weight = ?, 
-        blood_group = ?, religion = ?, marital_status = ?, military_status = ?,
-        mobile = ?, home_phone = ?, personal_email = ?, home_address = ?, current_address = ?
-      WHERE id = ?`,
-      [
-        data.companyPrefix, data.position, data.departmentId, data.roleId, data.email || null,
-        data.titleThai, data.firstName, data.lastName, 
-        data.titleEnglish || null, data.englishFirstName || null, data.englishLastName || null, data.nickname || null,
-        data.dateOfBirth, data.nationalId, data.height || null, data.weight || null, 
-        data.bloodGroup || null, data.religion || null, data.maritalStatus || null, data.militaryStatus || null,
-        data.mobile, data.homePhone || null, data.personalEmail || null, data.homeAddress || null, data.currentAddress || null,
-        id // ใส่ ID ไว้ตัวสุดท้ายสำหรับ WHERE condition
-      ]
-    );
-
-    res.status(200).json({ status: 'success', message: 'อัปเดตข้อมูลสำเร็จ' });
-  } catch (error) {
-    console.error('Database Error:', error);
-    res.status(500).json({ status: 'error', message: 'เกิดข้อผิดพลาดในการอัปเดตข้อมูล' });
-  }
-};
 
 // ==========================================
 // ฟังก์ชันดึงรายชื่อบริษัททั้งหมด (GET /api/companies)

@@ -55,26 +55,20 @@ const handleSubmit = async (e) => {
   };
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans pb-12">
-            {/* --- NAVBAR --- */}
-            <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
-                <div className="max-w-4xl mx-auto px-6 h-16 flex items-center gap-4">
-                    <button 
-            onClick={() => navigate(returnPath)} // 🌟 เปลี่ยนเป็น returnPath
-            className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
-          >
-            <ArrowLeft size={20} />
-          </button>
-                    <div className="flex items-center gap-2">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
+            {/* Page Header */}
+            <div className="mb-6 flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                         <Wrench className="text-indigo-600" size={24} />
-                        <span className="text-lg font-bold text-slate-900">แจ้งปัญหา IT (IT Helpdesk)</span>
-                    </div>
+                        แจ้งปัญหา IT (IT Helpdesk)
+                    </h1>
+                    <p className="text-slate-500 mt-1">กรอกรายละเอียดเพื่อแจ้งปัญหาให้ทีม IT เข้าตรวจสอบและแก้ไข</p>
                 </div>
-            </nav>
+            </div>
 
             {/* --- MAIN FORM --- */}
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-8">
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
 
                     <div className="bg-slate-900 px-8 py-6 text-white">
                         <h2 className="text-xl font-bold mb-2">เปิดทิกเก็ตแจ้งปัญหาใหม่</h2>
@@ -167,7 +161,6 @@ const handleSubmit = async (e) => {
                         </div>
                     </form>
 
-                </div>
             </div>
         </div>
     );

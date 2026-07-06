@@ -6,9 +6,11 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import EmployeeListPage from './pages/EmployeeListPage';
 import EditEmployeePage from './pages/EditEmployeePage';
 import AnnouncementPage from './pages/AnnouncementPage';
+import AddAnnouncementPage from './pages/AddAnnouncementPage';
 import ITSupportPage from './pages/ITSupportPage';
-import ITSupportAdminPage from './pages/ITSupportAdminPage'
-
+import ITSupportAdminPage from './pages/ITSupportAdminPage';
+import SystemSettingsPage from './pages/SystemSettingsPage';
+import AdminLayout from './components/layout/AdminLayout';
 
 export default function App() {
   return (
@@ -16,17 +18,19 @@ export default function App() {
       <Routes>
         {/* หน้าแรก (ข่าวสาร) */}
         <Route path="/" element={<AnnouncementPage />} />
-
-        {/* 🌟 หน้าแจ้งปัญหา IT 🌟 */}
-        <Route path="/it-support" element={<ITSupportPage />} />
-
-        {/* 🌟  หน้า Login ย้ายมาที่นี่ */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* 🌟  หน้าอื่นๆ ที่ต้อง Login ก่อนถึงจะเข้าได้ (หุ้มด้วย ProtectedRoute) */}
-        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="/employee-list" element={<ProtectedRoute><EmployeeListPage /></ProtectedRoute>} />
-        <Route path="/admin/it-support" element={<ITSupportAdminPage />} />
+        {/* 🌟 Layout สำหรับหน้าที่ต้อง Login (มี Sidebar & Navbar) 🌟 */}
+        <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/employee-list" element={<EmployeeListPage />} />
+          <Route path="/employees/new" element={<AddEmployeePage />} />
+          <Route path="/edit-employee/:id" element={<EditEmployeePage />} />
+          <Route path="/it-support" element={<ITSupportPage />} />
+          <Route path="/admin/it-support" element={<ITSupportAdminPage />} />
+          <Route path="/admin/announcements/new" element={<AddAnnouncementPage />} />
+          <Route path="/settings" element={<SystemSettingsPage />} />
+        </Route>
       </Routes>
     </Router>
   );

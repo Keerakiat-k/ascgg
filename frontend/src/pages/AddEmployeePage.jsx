@@ -24,6 +24,10 @@ export default function AddEmployeePage() {
   const [activeTab, setActiveTab] = useState('personal');
   const [companyOptions, setCompanyOptions] = useState([]);
 
+  // ดึงข้อมูล Role จาก LocalStorage เพื่อตรวจสอบว่าเป็น Admin หรือไม่
+  const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+  const isAdmin = String(userInfo.role_id) === '1';
+
   // 🌟 ดึงรายชื่อบริษัทสำหรับ Master Header จาก Database
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -317,9 +321,9 @@ export default function AddEmployeePage() {
               label="แผนก (Department)" name="departmentId" value={formData.departmentId} onChange={handleChange} required disabled={isLoading}
               options={[{ value: '1', label: 'ไอทีและพัฒนาระบบ (IT)' }, { value: '2', label: 'ทรัพยากรบุคคล (HR)' }, { value: '3', label: 'การเงินและบัญชี (Finance)' }]}
             />
-            <InputField label="อีเมลองค์กร (Company Email)" type="email" name="email" icon={Mail} value={formData.email} onChange={handleChange} disabled={isLoading} placeholder="name@ascggroup.com" />
+            <InputField label="อีเมลองค์กร (Company Email)" type="email" name="email" icon={Mail} value={formData.email} onChange={handleChange} disabled={isLoading || !isAdmin} placeholder="name@ascggroup.com" />
             <SelectField
-              label="สิทธิ์การใช้งานระบบ (System Role)" name="roleId" value={formData.roleId} onChange={handleChange} required disabled={isLoading}
+              label="สิทธิ์การใช้งานระบบ (System Role)" name="roleId" value={formData.roleId} onChange={handleChange} required disabled={isLoading || !isAdmin}
               options={[{ value: '1', label: 'ผู้ดูแลระบบ (Admin)' }, { value: '2', label: 'ทรัพยากรบุคคล (HR)' }, { value: '3', label: 'พนักงานทั่วไป (Employee)' }]}
             />
           </div>

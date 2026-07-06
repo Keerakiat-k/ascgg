@@ -125,7 +125,7 @@ export default function AnnouncementPage() {
                 {/* Image Placeholder แบบมินิมอล */}
                 <div className="aspect-[16/9] bg-slate-100 flex items-center justify-center relative overflow-hidden">
                   {item.cover_image ? (
-                    <img src={item.cover_image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+                    <img src={`http://localhost:5000/uploads/announcements/${item.cover_image}`} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                   ) : (
                     <Megaphone size={40} className="text-slate-300 transition-transform duration-500 group-hover:scale-110" />
                   )}

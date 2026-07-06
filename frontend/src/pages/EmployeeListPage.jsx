@@ -1,13 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, UserMinus, Search, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, UserMinus, Search, ArrowLeft, Printer, Users } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { useReactToPrint } from 'react-to-print';
+import ITFormPrintTemplate from '../components/pdf/ITFormPrintTemplate';
 
 export default function EmployeeListPage() {
   const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  // Print Setup
+  const componentRef = useRef();
+  const [selectedEmpForPrint, setSelectedEmpForPrint] = useState(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: componentRef,
+    documentTitle: 'IT-FORM-002',
+    onAfterPrint: () => setSelectedEmpForPrint(null),
+  });
+
+  const triggerPrint = (employee) => {
+    setSelectedEmpForPrint(employee);
+    setTimeout(() => {
+      handlePrint();
+    }, 100); // Wait for state to update and render the template
+  };
 
   // 1. ฟังก์ชันดึงข้อมูลพนักงานทั้งหมดมาแสดงในตาราง
   const fetchEmployees = async () => {
@@ -73,24 +92,24 @@ export default function EmployeeListPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         
-        {/* Header & Actions */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/dashboard')} 
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600 flex-shrink-0"
-              title="กลับไปหน้าหลัก"
-            >
-              <ArrowLeft size={24} />
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">รายชื่อพนักงานทั้งหมด</h1>
-              <p className="text-gray-500 text-sm mt-1">จัดการประวัติและสถานะของพนักงานในระบบ</p>
-            </div>
-          </div>
+        {/* Hidden Print Template */}
+        <div style={{ display: 'none' }}>
+          <ITFormPrintTemplate ref={componentRef} employee={selectedEmpForPrint} />
+        </div>
+
+        {/* Page Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Users className="text-indigo-600" />
+            รายชื่อพนักงานทั้งหมด
+          </h1>
+          <p className="text-gray-500 mt-1">จัดการประวัติและสถานะของพนักงานในระบบ</p>
+        </div>
+
+        {/* Actions Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6">
           
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -152,9 +171,18 @@ export default function EmployeeListPage() {
                         </span>
                       </td>
                       
-                      {/* 🌟 จุดที่แก้ไข: ปุ่มจัดการ (Edit / Resign) 🌟 */}
+                      {/* 🌟 จุดที่แก้ไข: ปุ่มจัดการ (Edit / Resign / Print) 🌟 */}
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
+                          
+                          <button 
+                            onClick={() => triggerPrint(employee)}
+                            className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            title="พิมพ์แบบแจ้ง User Name & Email (IT-FORM-002)"
+                          >
+                            <Printer size={18} />
+                          </button>
+
                           <button 
                             onClick={() => navigate(`/edit-employee/${employee.id}`)}
                             className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -186,8 +214,6 @@ export default function EmployeeListPage() {
             </table>
           </div>
         </div>
-
-      </div>
     </div>
   );
 }

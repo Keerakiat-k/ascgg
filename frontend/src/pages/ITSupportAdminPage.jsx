@@ -193,27 +193,25 @@ export default function ITSupportAdminPage() {
       {/* ========================================== */}
       {/* 🌟 ส่วนหน้าจอปกติ (ซ่อนตอนปริ้น PDF) 🌟 */}
       {/* ========================================== */}
-      <div className="print:hidden pb-12">
-        <nav className="bg-white border-b border-slate-200 sticky top-0 z-30">
-          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500">
-                <ArrowLeft size={20} />
-              </button>
-              <h1 className="text-xl font-bold text-slate-900">ระบบจัดการแจ้งซ่อม IT (Admin)</h1>
-            </div>
-            
-            <button 
-              onClick={() => navigate('/it-support', { state: { fromAdmin: true } })} 
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
-            >
-              <Plus size={16} /> แจ้งงานใหม่
-            </button>
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 print:hidden pb-12">
+        
+        {/* Page Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              ระบบจัดการแจ้งซ่อม IT (Admin)
+            </h1>
+            <p className="text-slate-500 mt-1">จัดการคำร้องและปัญหา IT จากพนักงานทั้งหมด</p>
           </div>
-        </nav>
+          <button 
+            onClick={() => navigate('/it-support', { state: { fromAdmin: true } })} 
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+          >
+            <Plus size={16} /> แจ้งงานใหม่
+          </button>
+        </div>
 
-        <main className="max-w-7xl mx-auto px-6 mt-8">
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center">
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center">
             
             {/* แถบค้นหา */}
             <div className="relative w-full lg:w-1/3">
@@ -317,7 +315,6 @@ export default function ITSupportAdminPage() {
               </table>
             </div>
           </div>
-        </main>
       </div>
 
       {/* ========================================== */}

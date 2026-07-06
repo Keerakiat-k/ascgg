@@ -1,59 +1,87 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import {
-  Users, UserPlus, Settings, ShieldAlert,
-  FileText, Calendar, Wallet, Bell,
-  LogOut, ShieldCheck, UserCheck, LayoutDashboard
+  Users, UserPlus, ShieldAlert,
+  FileText, Calendar, Wallet, CheckCircle, 
+  Clock, AlertCircle, BarChart3, TrendingUp
 } from 'lucide-react';
-import Swal from 'sweetalert2';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  
+  // ดึงค่ามาจาก AdminLayout ผ่าน Context
+  const { userRole, userName } = useOutletContext();
+  const [pendingTicketsCount, setPendingTicketsCount] = useState(0);
+  const [stats, setStats] = useState({ totalEmployees: 0, newThisMonth: 0, resigned: 0 });
 
-  // 🌟 (จำลอง) ดึงสิทธิ์ผู้ใช้จาก LocalStorage หรือตั้งค่าเริ่มต้น
-  // ในระบบจริง คุณจะดึงค่านี้มาจาก Token หลังจาก Login สำเร็จครับ
-  const [userRole, setUserRole] = useState('1'); // 1 = Admin, 2 = HR, 3 = Employee
-  const [userName, setUserName] = useState('แอดมิน ระบบ');
-
-  const handleLogout = () => {
-    Swal.fire({
-      title: 'ออกจากระบบสำเร็จ',
-      icon: 'success',
-      timer: 1500,
-      showConfirmButton: false
-    }).then(() => {
-      navigate('/');
-    });
-  };
+  useEffect(() => {
+    // โหลดข้อมูลภาพรวมสำหรับ Admin/HR
+    const fetchStats = async () => {
+      try {
+        if (userRole === '1' || userRole === '2') {
+          const empRes = await fetch('http://localhost:5000/api/employees');
+          const empData = await empRes.json();
+          if (empRes.ok) {
+            const emps = empData.data || [];
+            setStats({
+              totalEmployees: emps.filter(e => e.status === 'Active').length,
+              newThisMonth: Math.floor(Math.random() * 10), // Mock
+              resigned: emps.filter(e => e.status === 'Inactive').length
+            });
+          }
+        }
+        
+        if (userRole === '1') {
+          const ticketRes = await fetch('http://localhost:5000/api/it-support');
+          const ticketData = await ticketRes.json();
+          if (ticketRes.ok) {
+            setPendingTicketsCount(ticketData.data.filter(t => t.status === 'รอรับเรื่อง').length);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard stats', error);
+      }
+    };
+    fetchStats();
+  }, [userRole]);
 
   // ==========================================
   // 1. หน้าจอสำหรับ: พนักงานทั่วไป (Employee)
   // ==========================================
   const renderEmployeeDashboard = () => (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-6">
-        <div className="h-20 w-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl font-bold">
-          สญ
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* Welcome Banner */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+        <div className="relative z-10">
+          <h2 className="text-3xl font-bold mb-2">สวัสดี, {userName} 👋</h2>
+          <p className="text-blue-100 max-w-lg">ยินดีต้อนรับเข้าสู่ระบบจัดการบุคลากร ตรวจสอบข้อมูลส่วนตัวหรือวันลาคงเหลือได้ที่นี่</p>
         </div>
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">{userName}</h2>
-          <p className="text-slate-500">พนักงานบัญชี | แผนกการเงินและบัญชี</p>
+        {/* Background Decoration */}
+        <div className="absolute top-0 right-0 p-8 opacity-10 transform translate-x-4 -translate-y-4">
+          <svg width="200" height="200" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-          <Calendar className="text-blue-500 mb-4" size={32} />
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Calendar size={24} />
+          </div>
           <h3 className="text-lg font-bold text-slate-900">วันลาคงเหลือ</h3>
           <p className="text-slate-500 text-sm mt-1">พักร้อน 5 วัน | ลากิจ 3 วัน</p>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-          <Wallet className="text-green-500 mb-4" size={32} />
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
+          <div className="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Wallet size={24} />
+          </div>
           <h3 className="text-lg font-bold text-slate-900">สลิปเงินเดือน</h3>
           <p className="text-slate-500 text-sm mt-1">ดูสลิปเงินเดือนเดือนล่าสุดและย้อนหลัง</p>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-          <FileText className="text-purple-500 mb-4" size={32} />
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
+          <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <FileText size={24} />
+          </div>
           <h3 className="text-lg font-bold text-slate-900">ข้อมูลส่วนตัว</h3>
           <p className="text-slate-500 text-sm mt-1">ตรวจสอบและขอแก้ไขประวัติส่วนตัว</p>
         </div>
@@ -65,51 +93,84 @@ export default function DashboardPage() {
   // 2. หน้าจอสำหรับ: ทรัพยากรบุคคล (HR)
   // ==========================================
   const renderHRDashboard = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-indigo-500">
-          <p className="text-slate-500 text-sm font-medium mb-1">พนักงานทั้งหมด</p>
-          <h3 className="text-3xl font-bold text-slate-900">128 <span className="text-sm font-normal text-slate-500">คน</span></h3>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="mb-2">
+        <h2 className="text-2xl font-bold text-slate-900">ภาพรวมทรัพยากรบุคคล</h2>
+        <p className="text-slate-500">สถิติและข้อมูลพนักงานประจำเดือน</p>
+      </div>
+
+      {/* Info Boxes (AdminLTE style but modern) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4 relative overflow-hidden">
+          <div className="absolute right-0 top-0 h-full w-2 bg-indigo-500"></div>
+          <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center shrink-0">
+            <Users size={28} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-500 mb-1">พนักงานทั้งหมด (Active)</p>
+            <h3 className="text-3xl font-bold text-slate-900">{stats.totalEmployees}</h3>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-green-500">
-          <p className="text-slate-500 text-sm font-medium mb-1">พนักงานใหม่ (เดือนนี้)</p>
-          <h3 className="text-3xl font-bold text-slate-900">5 <span className="text-sm font-normal text-slate-500">คน</span></h3>
+
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4 relative overflow-hidden">
+          <div className="absolute right-0 top-0 h-full w-2 bg-emerald-500"></div>
+          <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shrink-0">
+            <UserPlus size={28} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-500 mb-1">พนักงานใหม่ (เดือนนี้)</p>
+            <h3 className="text-3xl font-bold text-slate-900">{stats.newThisMonth}</h3>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-orange-500">
-          <p className="text-slate-500 text-sm font-medium mb-1">รออนุมัติวันลา</p>
-          <h3 className="text-3xl font-bold text-slate-900">12 <span className="text-sm font-normal text-slate-500">รายการ</span></h3>
+
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4 relative overflow-hidden">
+          <div className="absolute right-0 top-0 h-full w-2 bg-amber-500"></div>
+          <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center shrink-0">
+            <Clock size={28} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-500 mb-1">รออนุมัติวันลา</p>
+            <h3 className="text-3xl font-bold text-slate-900">12</h3>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-red-500">
-          <p className="text-slate-500 text-sm font-medium mb-1">พนักงานที่ลาออก</p>
-          <h3 className="text-3xl font-bold text-slate-900">2 <span className="text-sm font-normal text-slate-500">คน</span></h3>
+
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4 relative overflow-hidden">
+          <div className="absolute right-0 top-0 h-full w-2 bg-rose-500"></div>
+          <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center shrink-0">
+            <AlertCircle size={28} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-500 mb-1">พนักงานพ้นสภาพ</p>
+            <h3 className="text-3xl font-bold text-slate-900">{stats.resigned}</h3>
+          </div>
         </div>
       </div>
 
-      <h3 className="text-lg font-bold text-slate-900 mt-8 mb-4">เมนูด่วนสำหรับ HR</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div
-          onClick={() => navigate('/employee-list')}
-          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
-        >
-          <div className="bg-indigo-50 p-4 rounded-xl group-hover:bg-indigo-100 transition-colors">
-            <Users className="text-indigo-600" size={28} />
+      {/* Chart/Activity Area */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold text-slate-900 flex items-center gap-2"><TrendingUp size={20} className="text-indigo-500" /> อัตราการเข้าออกพนักงาน</h3>
           </div>
-          <div>
-            <h4 className="font-bold text-slate-900">จัดการรายชื่อพนักงาน</h4>
-            <p className="text-sm text-slate-500">ดูรายชื่อ ค้นหา และแก้ไขประวัติพนักงาน</p>
+          <div className="h-64 flex items-center justify-center bg-slate-50 rounded-xl border border-slate-100 border-dashed">
+            <span className="text-slate-400 font-medium">ส่วนแสดงกราฟสถิติ (รอเชื่อมต่อข้อมูล)</span>
           </div>
         </div>
-
-        <div
-          onClick={() => navigate('/employees/new')}
-          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
-        >
-          <div className="bg-blue-50 p-4 rounded-xl group-hover:bg-blue-100 transition-colors">
-            <UserPlus className="text-blue-600" size={28} />
-          </div>
-          <div>
-            <h4 className="font-bold text-slate-900">เพิ่มพนักงานใหม่</h4>
-            <p className="text-sm text-slate-500">บันทึกประวัติพนักงานใหม่เข้าสู่ระบบ</p>
+        
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2"><Clock size={20} className="text-amber-500" /> กิจกรรมล่าสุด</h3>
+          <div className="space-y-4">
+            {[1, 2, 3].map((_, idx) => (
+              <div key={idx} className="flex gap-4">
+                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-slate-500">
+                  <CheckCircle size={18} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-900">อนุมัติวันลาของ สมชาย พนักงานบัญชี</p>
+                  <p className="text-xs text-slate-500 mt-1">2 ชั่วโมงที่แล้ว</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -120,119 +181,69 @@ export default function DashboardPage() {
   // 3. หน้าจอสำหรับ: ผู้ดูแลระบบ (Admin)
   // ==========================================
   const renderAdminDashboard = () => (
-    <div className="space-y-6">
-      {/* แถบแจ้งสถานะระบบ */}
-      <div className="bg-slate-900 p-6 rounded-2xl shadow-sm text-white flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2"><ShieldCheck className="text-green-400" /> System Status: Online</h2>
-          <p className="text-slate-400 mt-1">ระบบฐานข้อมูลและ API ทำงานปกติ (Uptime: 99.9%)</p>
-        </div>
-        <button className="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-700">
-          ดู Log ระบบ
-        </button>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="mb-2">
+        <h2 className="text-2xl font-bold text-slate-900">System Dashboard</h2>
+        <p className="text-slate-500">ภาพรวมระบบและการแจ้งเตือนสำหรับผู้ดูแลระบบ</p>
       </div>
 
-      {/* เมนูการตั้งค่าระบบและ IT Helpdesk */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-          <Settings className="text-slate-700 mb-4" size={32} />
-          <h3 className="text-lg font-bold text-slate-900">ตั้งค่าระบบองค์กร</h3>
-          <p className="text-slate-500 text-sm mt-1">จัดการบริษัท, แผนก, และโครงสร้างองค์กร</p>
-        </div>
-        
-        <div 
-          onClick={() => navigate('/admin/it-support')}
-          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer relative overflow-hidden group"
-        >
-          <div className="absolute top-6 right-6 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full animate-pulse shadow-sm">
-            3 งานใหม่
+      {/* Stats row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+          <div className="relative z-10 flex justify-between items-start">
+            <div>
+              <p className="text-indigo-100 font-medium mb-1">พนักงานในระบบ (Active)</p>
+              <h3 className="text-4xl font-bold">{stats.totalEmployees}</h3>
+            </div>
+            <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+              <Users size={24} className="text-white" />
+            </div>
           </div>
-          <div className="bg-indigo-50 w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <ShieldAlert className="text-indigo-600" size={28} />
-          </div>
-          <h3 className="text-lg font-bold text-slate-900">ระบบแจ้งซ่อม IT</h3>
-          <p className="text-slate-500 text-sm mt-1">จัดการคำร้อง, อัปเดตสถานะ และให้ความช่วยเหลือ</p>
+          <svg className="absolute -bottom-4 -right-4 w-32 h-32 text-indigo-400 opacity-30" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-          <ShieldAlert className="text-red-500 mb-4" size={32} />
-          <h3 className="text-lg font-bold text-slate-900">ความปลอดภัยระบบ</h3>
-          <p className="text-slate-500 text-sm mt-1">ตั้งค่า Password Policy และ 2FA</p>
+        <div className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden cursor-pointer hover:shadow-xl transition-shadow" onClick={() => navigate('/admin/it-support')}>
+          <div className="relative z-10 flex justify-between items-start">
+            <div>
+              <p className="text-rose-100 font-medium mb-1">แจ้งซ่อม IT (รอดำเนินการ)</p>
+              <h3 className="text-4xl font-bold">{pendingTicketsCount}</h3>
+            </div>
+            <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+              <ShieldAlert size={24} className="text-white" />
+            </div>
+          </div>
+          <svg className="absolute -bottom-4 -right-4 w-32 h-32 text-rose-400 opacity-30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+        </div>
+
+        <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+          <div className="relative z-10 flex justify-between items-start">
+            <div>
+              <p className="text-slate-300 font-medium mb-1">สถานะเซิร์ฟเวอร์</p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <span className="text-2xl font-bold text-emerald-400">Online</span>
+              </div>
+            </div>
+            <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
+              <BarChart3 size={24} className="text-white" />
+            </div>
+          </div>
+          <svg className="absolute -bottom-4 -right-4 w-32 h-32 text-slate-600 opacity-30" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
         </div>
       </div>
 
-      {/* 🌟 เมนูจัดการบัญชีผู้ใช้งานสำหรับ Admin (เอาปุ่มเพิ่มพนักงานออกแล้ว) 🌟 */}
-      <h3 className="text-lg font-bold text-slate-900 mt-8 mb-4">การจัดการบัญชีผู้ใช้งาน (User Management)</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div 
-          onClick={() => navigate('/employee-list')}
-          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
-        >
-          <div className="bg-indigo-50 p-4 rounded-xl group-hover:bg-indigo-100 transition-colors">
-            <Users className="text-indigo-600" size={28} />
-          </div>
-          <div>
-            <h4 className="font-bold text-slate-900">จัดการบัญชีและรายชื่อพนักงาน</h4>
-            <p className="text-sm text-slate-500">ดูรายชื่อพนักงานทั้งหมด, สร้างอีเมลองค์กร และรีเซ็ตรหัสผ่าน</p>
-          </div>
-        </div>
-      </div>
-      
     </div>
   );  
   
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-
-      {/* --- NAVBAR --- */}
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <LayoutDashboard className="text-indigo-600" size={24} />
-            <span className="text-lg font-bold text-slate-900 tracking-tight">ASCG Portal</span>
-
-            {/* แสดงป้ายบอกสถานะสิทธิ์ */}
-            <span className={`ml-2 px-2.5 py-0.5 rounded-full text-xs font-bold ${userRole === '1' ? 'bg-red-100 text-red-700' :
-              userRole === '2' ? 'bg-indigo-100 text-indigo-700' :
-                'bg-blue-100 text-blue-700'
-              }`}>
-              {userRole === '1' ? 'Admin' : userRole === '2' ? 'HR' : 'Employee'}
-            </span>
-          </div>
-
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            <LogOut size={16} />
-            ออกจากระบบ
-          </button>
-        </div>
-      </nav>
-
-      {/* --- 🛠️ แถบสำหรับเทสเปลี่ยนสิทธิ์ (ลบออกตอนใช้งานจริง) 🛠️ --- */}
-      <div className="bg-indigo-50 border-b border-indigo-100 p-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-4 text-sm">
-          <span className="font-semibold text-indigo-900">🔧 จำลองมุมมอง (Test Roles):</span>
-          <button onClick={() => { setUserRole('1'); setUserName('แอดมิน ระบบ'); }} className={`px-3 py-1 rounded-md transition-colors ${userRole === '1' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 hover:bg-indigo-100'}`}>Admin</button>
-          <button onClick={() => { setUserRole('2'); setUserName('สมหญิง ทรัพยากรบุคคล'); }} className={`px-3 py-1 rounded-md transition-colors ${userRole === '2' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 hover:bg-indigo-100'}`}>HR</button>
-          <button onClick={() => { setUserRole('3'); setUserName('สมชาย พนักงานบัญชี'); }} className={`px-3 py-1 rounded-md transition-colors ${userRole === '3' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 hover:bg-indigo-100'}`}>Employee</button>
-        </div>
-      </div>
-
-      {/* --- MAIN CONTENT --- */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">สวัสดี, {userName} 👋</h1>
-          <p className="text-slate-500 mt-1">ยินดีต้อนรับเข้าสู่ระบบจัดการบุคลากร ASCG Group</p>
-        </div>
-
-        {/* 🌟 แสดงหน้าจอตามสิทธิ์ (Role) 🌟 */}
-        {userRole === '1' && renderAdminDashboard()}
-        {userRole === '2' && renderHRDashboard()}
-        {userRole === '3' && renderEmployeeDashboard()}
-
-      </main>
-    </div>
+    <>
+      {/* 🌟 แสดงหน้าจอตามสิทธิ์ (Role) 🌟 */}
+      {userRole === '1' && renderAdminDashboard()}
+      {userRole === '2' && renderHRDashboard()}
+      {userRole === '3' && renderEmployeeDashboard()}
+    </>
   );
 }
