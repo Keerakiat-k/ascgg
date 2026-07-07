@@ -262,36 +262,36 @@ export default function AddEmployeePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      <nav className="bg-white border-b border-gray-200 px-8 py-4 sticky top-0 z-20 shadow-sm">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600">
-              <ArrowLeft size={24} />
-            </button>
-            <h1 className="text-xl font-bold text-gray-900">ทะเบียนประวัติพนักงานใหม่</h1>
-          </div>
-
-          <div className="flex gap-3">
-            {/* --- ปุ่มเสกข้อมูล (สำหรับเทส) --- */}
-            <Button 
-              type="button" 
-              onClick={fillMockData} 
-              className="!w-auto !bg-gray-200 !text-gray-700 hover:!bg-gray-300"
-            >
-              🪄 Auto Fill (Test)
-            </Button>
-
-            {/* --- ปุ่มบันทึกข้อมูลเดิม --- */}
-            <Button type="button" onClick={handleSubmit} isLoading={isLoading} className="!w-auto flex items-center gap-2 px-6">
-              <Save size={18} />
-              บันทึกข้อมูลทั้งหมด
-            </Button>
-          </div>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
+      {/* Page Header */}
+      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <UserPlus className="text-indigo-600" />
+            ทะเบียนประวัติพนักงานใหม่
+          </h1>
+          <p className="text-gray-500 mt-1">กรอกข้อมูลพนักงานใหม่เพื่อบันทึกลงในระบบ</p>
         </div>
-      </nav>
 
-      <main className="max-w-6xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+        <div className="flex gap-3">
+          {/* --- ปุ่มเสกข้อมูล (สำหรับเทส) --- */}
+          <Button 
+            type="button" 
+            onClick={fillMockData} 
+            className="!w-auto !bg-gray-200 !text-gray-700 hover:!bg-gray-300"
+          >
+            🪄 Auto Fill (Test)
+          </Button>
+
+          {/* --- ปุ่มบันทึกข้อมูลเดิม --- */}
+          <Button type="button" onClick={handleSubmit} isLoading={isLoading} className="!w-auto flex items-center gap-2 px-6">
+            <Save size={18} />
+            บันทึกข้อมูลทั้งหมด
+          </Button>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto mt-4">
         {error && (
           <div className="mb-6 bg-red-50 text-red-700 p-4 rounded-lg flex items-center gap-3 text-sm border border-red-200">
             <AlertCircle size={20} className="text-red-500 shrink-0" />
@@ -366,7 +366,7 @@ export default function AddEmployeePage() {
             </form>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
