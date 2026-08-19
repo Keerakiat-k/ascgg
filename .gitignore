@@ -67,3 +67,4 @@ PROJECT_SUMMARY.md
 *.bat
 start_project.ps1
 ascg_g_db.sql
+docs/
