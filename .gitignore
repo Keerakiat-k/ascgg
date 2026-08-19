@@ -59,6 +59,11 @@ desktop.ini
 logs/
 
 # ===========================
-# AI Context (internal docs)
+# AI Context & Summaries (internal docs)
 # ===========================
 AI_CONTEXT/
+Daily_Summary*.md
+PROJECT_SUMMARY.md
+*.bat
+start_project.ps1
+ascg_g_db.sql
