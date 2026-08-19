@@ -1,31 +1,38 @@
 export default function SelectField({ 
   label, 
-  name,       // <-- 1. รับค่า name เข้ามาเป็น Props
+  name, 
   value, 
   onChange, 
-  options, 
+  options = [], 
   icon: Icon, 
   required, 
-  disabled 
+  disabled,
+  placeholder = '-- กรุณาเลือก --'
 }) {
+  const hasEmptyOption = options.some((opt) => opt.value === '');
+
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+    <div className="space-y-1.5">
+      {label && <label className="block text-sm font-medium text-slate-700">{label}</label>}
       <div className="relative">
         {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-            <Icon size={20} />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <Icon size={18} />
           </div>
         )}
         <select
-          name={name} // <-- 2. ผูก name เข้ากับ HTML Select Attribute
+          name={name}
           value={value}
           onChange={onChange}
           required={required}
           disabled={disabled}
-          className={`block w-full ${Icon ? 'pl-10' : 'pl-3'} pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors disabled:bg-gray-100 disabled:text-gray-500`}
+          className={`block w-full ${Icon ? 'pl-10' : 'pl-4'} pr-10 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#f89919]/30 focus:border-[#f89919] bg-white transition-all text-sm text-slate-900 outline-none hover:border-slate-400 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed`}
         >
-          <option value="" disabled>-- กรุณาเลือก --</option>
+          {!hasEmptyOption && placeholder && (
+            <option value="" disabled>
+              {placeholder}
+            </option>
+          )}
           {options.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}

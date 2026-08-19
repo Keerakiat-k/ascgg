@@ -1,8 +1,13 @@
 import React, { forwardRef } from 'react';
-import aiaLogo from '../../assets/AIA.png';
+import { COMPANY_EMAIL_CONFIGS, generatePassword, getPhoneticThai } from '../../utils/companyEmailConfig';
+import aiaLogo from '../../assets/AIA.png'; // Fallback
 
 const ITFormPrintTemplate = forwardRef(({ employee, printDate }, ref) => {
   if (!employee) return <div ref={ref} style={{ display: 'none' }}></div>;
+
+  const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+  const mockRole = localStorage.getItem('mockRole');
+  const isAdmin = String(userInfo.role_id) === '1' || mockRole === '1';
 
   // แปลงวันที่ให้อยู่ในรูปแบบ dd/mm/yyyy
   const formattedDate = printDate ? new Date(printDate).toLocaleDateString('th-TH', {
@@ -10,23 +15,31 @@ const ITFormPrintTemplate = forwardRef(({ employee, printDate }, ref) => {
   }) : new Date().toLocaleDateString('th-TH', {
     day: '2-digit', month: '2-digit', year: 'numeric'
   });
+  // แยกชื่อจริง-นามสกุล โดยดึงจากฟิลด์แยก หรือ full_name
+  const firstNameTh = employee.first_name_th || (employee.full_name_th || '').split(' ')[0] || '';
+  const lastNameTh = employee.last_name_th || (employee.full_name_th || '').split(' ').slice(1).join(' ') || '';
 
-  // แยกชื่อจริง-นามสกุล
-  const [firstNameTh, ...lastNameThArr] = (employee.full_name_th || '').split(' ');
-  const lastNameTh = lastNameThArr.join(' ');
-
-  const [firstNameEn, ...lastNameEnArr] = (employee.full_name_en || '').split(' ');
-  const lastNameEn = lastNameEnArr.join(' ');
+  const firstNameEn = employee.first_name_en || (employee.full_name_en || '').split(' ')[0] || '';
+  const lastNameEn = employee.last_name_en || (employee.full_name_en || '').split(' ').slice(1).join(' ') || '';
 
   // ดึง Prefix (คำนำหน้า) จากชื่อภาษาไทยแบบง่าย (ถ้ามีนาย นาง นางสาว)
-  let titleTh = '';
-  let titleEn = '';
-  if (firstNameTh.startsWith('นาย')) { titleTh = 'นาย'; titleEn = 'Mr'; }
-  else if (firstNameTh.startsWith('นางสาว')) { titleTh = 'นางสาว'; titleEn = 'Miss'; }
-  else if (firstNameTh.startsWith('นาง')) { titleTh = 'นาง'; titleEn = 'Mrs'; }
+  let titleTh = employee.title_th || '';
+  let titleEn = employee.title_en || '';
+  if (!titleTh && firstNameTh.startsWith('นาย')) { titleTh = 'นาย'; }
+  else if (!titleTh && firstNameTh.startsWith('นางสาว')) { titleTh = 'นางสาว'; }
+  else if (!titleTh && firstNameTh.startsWith('นาง')) { titleTh = 'นาง'; }
 
   // ตัดคำนำหน้าออกจากชื่อ
   const cleanFirstNameTh = firstNameTh.replace(/^(นาย|นางสาว|นาง)/, '');
+
+  // ดึงข้อมูลบริษัท
+  const compConfig = COMPANY_EMAIL_CONFIGS[employee.company_prefix] || COMPANY_EMAIL_CONFIGS['AIA'];
+  const domainUsername = employee.email ? employee.email.split('@')[0] : '-';
+  const computedPassword = generatePassword(firstNameEn, lastNameEn);
+  const phoneticPassword = getPhoneticThai(computedPassword);
+
+  const displayFullNameTh = `${titleTh}${cleanFirstNameTh} ${lastNameTh}`.trim();
+  const displayFullNameEn = `${titleEn ? titleEn + ' ' : ''}${firstNameEn} ${lastNameEn}`.trim();
 
   return (
     <div ref={ref} className="bg-white text-black p-8 mx-auto" style={{ width: '210mm', minHeight: '297mm', fontFamily: '"Sarabun", "Tahoma", sans-serif' }}>
@@ -34,12 +47,12 @@ const ITFormPrintTemplate = forwardRef(({ employee, printDate }, ref) => {
       {/* Header Section */}
       <div className="flex justify-between items-start mb-6">
         <div className="flex items-center gap-4">
-          <img src={aiaLogo} alt="ASCG Interpro (Asia)" className="h-16 object-contain" />
+          <img src={compConfig.logo || aiaLogo} alt={compConfig.nameEn} className="h-28 w-auto object-contain" />
         </div>
         
         <div className="text-center flex-1">
-          <h2 className="text-sm font-semibold">ASCG Interpro (Asia) CO.,LTD.</h2>
-          <h2 className="text-sm font-semibold mt-1">บริษัท เอเอสซีจี อินเตอร์โปร (เอเชีย) จำกัด</h2>
+          <h2 className="text-sm font-semibold">{compConfig.nameEn}</h2>
+          <h2 className="text-sm font-semibold mt-1">{compConfig.nameTh}</h2>
           <h3 className="text-sm font-bold mt-2">แบบแจ้ง User Name & Email</h3>
           <p className="text-xs mt-1">(เอกสารภายใน เฉพาะฝ่าย IT เท่านั้น)</p>
         </div>
@@ -62,30 +75,18 @@ const ITFormPrintTemplate = forwardRef(({ employee, printDate }, ref) => {
         {/* Name Thai Row */}
         <div className="p-3 border-b border-black flex items-center gap-6">
           <span className="w-16">ชื่อ-สกุล</span>
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-1"><input type="checkbox" checked={titleTh === 'นาย'} readOnly className="w-4 h-4 border-black" /> นาย</label>
-            <label className="flex items-center gap-1"><input type="checkbox" checked={titleTh === 'นาง'} readOnly className="w-4 h-4 border-black" /> นาง</label>
-            <label className="flex items-center gap-1"><input type="checkbox" checked={titleTh === 'นางสาว'} readOnly className="w-4 h-4 border-black" /> นางสาว</label>
-          </div>
           <span className="ml-2">(ภาษาไทย)</span>
           <div className="flex-1 border-b border-black border-dashed flex gap-4 text-base font-semibold px-2 pb-1">
-            <span>{cleanFirstNameTh}</span>
-            <span>{lastNameTh}</span>
+            <span>{displayFullNameTh || '-'}</span>
           </div>
         </div>
 
         {/* Name Eng Row */}
         <div className="p-3 border-b border-black flex items-center gap-6">
           <span className="w-16">NAME</span>
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-1"><input type="checkbox" checked={titleEn === 'Mr'} readOnly className="w-4 h-4 border-black" /> Mr</label>
-            <label className="flex items-center gap-1"><input type="checkbox" checked={titleEn === 'Mrs'} readOnly className="w-4 h-4 border-black" /> Mrs</label>
-            <label className="flex items-center gap-1"><input type="checkbox" checked={titleEn === 'Miss'} readOnly className="w-4 h-4 border-black" /> Miss</label>
-          </div>
           <span className="ml-2">(English)</span>
           <div className="flex-1 border-b border-black border-dashed flex gap-4 text-base font-semibold px-2 pb-1">
-            <span>{firstNameEn || '-'}</span>
-            <span>{lastNameEn || '-'}</span>
+            <span>{displayFullNameEn || '-'}</span>
           </div>
         </div>
 
@@ -100,26 +101,31 @@ const ITFormPrintTemplate = forwardRef(({ employee, printDate }, ref) => {
         </div>
 
         {/* Login Domain Section */}
-        <div className="flex border-b border-black h-24">
-          <div className="w-32 p-3 border-r border-black flex items-center flex-col justify-center text-xs">
-            <div className="font-semibold mb-1">Login Domain</div>
-            <div>(Office Only)</div>
+        {isAdmin && (
+          <div className="flex border-b border-black h-24">
+            <div className="w-32 p-3 border-r border-black flex items-center flex-col justify-center text-xs">
+              <div className="font-semibold mb-1">Login Domain</div>
+              <div>(Office Only)</div>
+            </div>
+            <div className="flex-1 p-3 flex flex-col justify-between">
+              <div className="flex items-end">
+                <span className="w-32">User Name</span>
+                <div className="flex-1 border-b border-black text-center font-bold px-2 pb-1 text-sm">{employee.use_domain ? domainUsername : '-'}</div>
+              </div>
+              <div className="flex items-end">
+                <span className="w-32">Password</span>
+                <div className="flex-1 border-b border-black text-xs text-center pb-1">(เปลี่ยน Password เข้าสู่ระบบ กด Ctrl+Alt+Del กดปุ่ม Change Password)</div>
+              </div>
+              <div className="flex items-end">
+                <span className="w-32">Domain</span>
+                <div className="flex-1 border-b border-black text-center font-bold px-2 pb-1 text-sm">
+                  {employee.use_domain ? ((employee.company_prefix === 'AGC' || employee.company_prefix === 'AIA') ? 'ASCGGROUP' : '-') : '-'}
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex-1 p-3 flex flex-col justify-between">
-            <div className="flex items-end">
-              <label className="flex items-center gap-2 w-32"><input type="checkbox" className="w-4 h-4 border-black" /> User Name</label>
-              <div className="flex-1 border-b border-black text-center"></div>
-            </div>
-            <div className="flex items-end">
-              <span className="w-32">Password</span>
-              <div className="flex-1 border-b border-black text-xs text-center pb-1">(เปลี่ยน Password เข้าสู่ระบบ กด Ctrl+Alt+Del กดปุ่ม Change Password)</div>
-            </div>
-            <div className="flex items-end">
-              <span className="w-32">Domain</span>
-              <div className="flex-1 border-b border-black text-center"></div>
-            </div>
-          </div>
-        </div>
+        )}
+
 
         {/* Email Section */}
         <div className="flex border-b border-black">
@@ -128,29 +134,29 @@ const ITFormPrintTemplate = forwardRef(({ employee, printDate }, ref) => {
               <div className="w-24 text-lg font-bold">Email</div>
               <div className="flex-1">
                 <div className="flex items-end">
-                  <label className="flex items-center gap-2 whitespace-nowrap"><input type="checkbox" defaultChecked className="w-4 h-4 border-black" /> User Name</label>
+                  <span className="w-24 whitespace-nowrap">User Name</span>
                   <div className="flex-1 border-b border-black text-lg font-bold px-2 ml-2 pb-0.5">{employee.email || '-'}</div>
                 </div>
                 <div className="flex items-end mt-4">
                   <span className="whitespace-nowrap mr-2">Password*<sup className="text-[10px]">1</sup></span>
-                  <div className="flex-1 font-bold text-lg"></div>
+                  <div className="flex-1 font-bold text-lg">{computedPassword}</div>
                 </div>
                 <div className="mt-2 text-xs">
-                  พีใหญ่ แอดไซต์ เอส เอส ดับบลิว ศูนย์ อาร์ ดี พีใหญ่ พีใหญ่
+                  {phoneticPassword}
                 </div>
               </div>
             </div>
           </div>
           <div className="w-2/5 p-3 text-xs flex flex-col justify-center">
             <div className="text-center font-bold mb-3">Outlook Setting : Email POP Server</div>
-            <div className="mb-2">Incoming (POP3) : pop.interprocorp.com Port:110 No SSL</div>
-            <div>Outgoing(SMTP) : smtp.interprocorp.com Port : 587 No SSL</div>
+            <div className="mb-2">Incoming (POP3) : {compConfig.pop3?.server} Port:{compConfig.pop3?.port} {compConfig.pop3?.ssl}</div>
+            <div>Outgoing(SMTP) : {compConfig.smtp?.server} Port : {compConfig.smtp?.port} {compConfig.smtp?.ssl}</div>
           </div>
         </div>
 
         {/* Instructions Section */}
         <div className="p-4 text-xs leading-relaxed space-y-2">
-          <div>1 การเปลี่ยน Password Email เปิด Webmail http://mail.interprocorp.com, Login Username@interprocorp.com , Setting , Password</div>
+          <div>1 การเปลี่ยน Password Email เปิด Webmail http://mail.{compConfig.domain}, Login {employee.email || 'Username@'+compConfig.domain} , Setting , Password</div>
           <div className="ml-3">เปลี่ยนรหัสผ่านใส่ รหัสปัจจุบัน,ใส่รหัสใหม่,กด ตกลง</div>
           <div className="ml-3">*ท่านต้องจำ Password ที่ท่านได้เปลี่ยนแปลงให้ได้ หากผิดพลาดหรือลืม กรุณาติดต่อ IT เพื่อรีเซ็ท Password</div>
           <div>2 มีข้อสงสัย สอบถามรายละเอียดเพิ่มเติมได้ที่ฝ่าย IT Ext.2233</div>

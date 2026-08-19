@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, FileText, Megaphone, Image as ImageIcon } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -13,6 +13,56 @@ export default function AddAnnouncementPage() {
   });
   const [coverImage, setCoverImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [sendEmail, setSendEmail] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDepartments, setSelectedDepartments] = useState(['ALL']);
+  const [announcementTypes, setAnnouncementTypes] = useState([]);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/settings/departments');
+        const data = await res.json();
+        if (res.ok) setDepartments(data.data || []);
+      } catch (error) {
+        console.error('Error fetching depts:', error);
+      }
+    };
+    
+    const fetchAnnouncementTypes = async () => {
+      try {
+        const res = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/announcement-types');
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          const activeTypes = data.data.filter(t => t.status === 'Active');
+          setAnnouncementTypes(activeTypes);
+          if (activeTypes.length > 0) {
+            setFormData(prev => ({ ...prev, type: activeTypes[0].name }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching announcement types:', error);
+      }
+    };
+
+    fetchDepartments();
+    fetchAnnouncementTypes();
+  }, []);
+
+  const handleDeptToggle = (code) => {
+    if (code === 'ALL') {
+      setSelectedDepartments(['ALL']);
+      return;
+    }
+    let newSelection = [...selectedDepartments.filter(c => c !== 'ALL')];
+    if (newSelection.includes(code)) {
+      newSelection = newSelection.filter(c => c !== code);
+    } else {
+      newSelection.push(code);
+    }
+    if (newSelection.length === 0) newSelection = ['ALL'];
+    setSelectedDepartments(newSelection);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,16 +103,35 @@ export default function AddAnnouncementPage() {
         submitData.append('coverImage', coverImage);
       }
 
-      const response = await fetch('http://localhost:5000/api/announcements', {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/announcements', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: submitData
       });
       
       const result = await response.json();
       
       if (response.ok && result.status === 'success') {
+        const newAnnouncementId = result.insertId; 
+        
+        // If sendEmail is checked, call send-email API
+        if (sendEmail && newAnnouncementId) {
+          try {
+            await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/announcements/${newAnnouncementId}/send-email`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ departments: selectedDepartments })
+            });
+          } catch (e) {
+            console.error('Failed to send email after creation', e);
+          }
+        }
+
         Swal.fire('สำเร็จ', 'บันทึกประกาศเรียบร้อยแล้ว', 'success').then(() => {
-          navigate('/dashboard'); 
+          navigate('/admin/announcements'); 
         });
       } else {
         throw new Error(result.message || 'ไม่สามารถบันทึกได้');
@@ -82,7 +151,7 @@ export default function AddAnnouncementPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button 
-            onClick={() => navigate('/dashboard')} 
+            onClick={() => navigate('/admin/announcements')} 
             className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-600"
             title="กลับไปหน้าหลัก"
           >
@@ -152,9 +221,12 @@ export default function AddAnnouncementPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white"
                 >
-                  <option value="ข่าวสาร">📰 ข่าวสารทั่วไป</option>
-                  <option value="กิจกรรม">🎉 กิจกรรม</option>
-                  <option value="ประกาศสำคัญ">📢 ประกาศสำคัญ</option>
+                  {announcementTypes.map(t => (
+                    <option key={t.id} value={t.name}>{t.name}</option>
+                  ))}
+                  {announcementTypes.length === 0 && (
+                    <option value="" disabled>ไม่มีข้อมูลประเภทประกาศ</option>
+                  )}
                 </select>
               </div>
 
@@ -197,3 +269,4 @@ export default function AddAnnouncementPage() {
     </div>
   );
 }
+

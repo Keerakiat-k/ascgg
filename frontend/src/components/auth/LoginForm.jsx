@@ -16,10 +16,14 @@ export default function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-
     try {
-      // ยิง API ไปยัง Backend ที่เราเขียนไว้
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const envUrl = import.meta.env.VITE_API_BASE_URL;
+      const baseUrl = (envUrl && envUrl.trim() !== '')
+        ? envUrl.trim().replace(/\/$/, '')
+        : `${window.location.protocol === 'https:' ? 'https:' : 'http:'}//${window.location.hostname}:5000`;
+
+      // ยิง API ไปยัง Backend
+      const response = await fetch(baseUrl + '/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,12 +67,12 @@ export default function LoginForm() {
       )}
 
       <InputField
-        label="อีเมลองค์กร"
-        type="email"
+        label="อีเมลองค์กร / ชื่อผู้ใช้"
+        type="text"
         icon={Mail}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="name@company.com"
+        placeholder="name@company.com หรือ admin"
         required
         disabled={isLoading}
       />

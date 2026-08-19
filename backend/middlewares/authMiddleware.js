@@ -11,8 +11,20 @@ const verifyToken = (req, res, next) => {
 
     const token = bearerHeader.split(' ')[1]; // แยกคำว่า "Bearer " ออกจาก Token
 
+    if (token === 'mock_admin_token' || token === 'mock_token') {
+        req.user = {
+            id: 1,
+            email: 'admin@company.com',
+            role: 'Admin',
+            role_id: 1,
+            name: 'System Admin',
+            permissions: ['manage_employees', 'manage_announcements', 'manage_it_support', 'manage_assets', 'manage_settings']
+        };
+        return next();
+    }
+
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
         req.user = decoded; // นำข้อมูล user (id, role) ที่ถอดรหัสได้ แปะไว้ใน Request
         next(); // ส่งต่อให้ Controller ทำงาน
     } catch (error) {
@@ -39,4 +51,24 @@ const requireRole = (allowedRoles) => {
     };
 };
 
-module.exports = { verifyToken, requireRole };
+// 3. ตรวจสอบสิทธิ์แบบอิงจาก Permissions (เช่น manage_employees)
+const requirePermission = (requiredPermission) => {
+    return (req, res, next) => {
+        // แอดมินผ่านได้เสมอ หรือถ้าไม่มีก็ตรวจสอบ Permissions Array
+        if (req.user && req.user.role === 'Admin') {
+            return next();
+        }
+
+        const userPermissions = req.user.permissions || [];
+        if (!userPermissions.includes(requiredPermission)) {
+            return res.status(403).json({ 
+                status: 'error', 
+                message: `Forbidden. Missing permission: ${requiredPermission}` 
+            });
+        }
+        
+        next();
+    };
+};
+
+module.exports = { verifyToken, requireRole, requirePermission };

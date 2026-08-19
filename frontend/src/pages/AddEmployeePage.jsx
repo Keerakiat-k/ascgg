@@ -1,99 +1,119 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, User, Users, GraduationCap, 
-  Star, FileText, AlertCircle, Save,
-  Building, Hash, Briefcase, Mail, ShieldCheck
+  ArrowLeft, User, Users, Save, Building, Hash, 
+  Briefcase, Mail, Camera, ShieldCheck, UserPlus, Phone, Calendar
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import InputField from '../components/ui/InputField';
 import SelectField from '../components/ui/SelectField';
+import SearchableSelectField from '../components/ui/SearchableSelectField';
 import Swal from 'sweetalert2';
-
-// นำเข้า Form Components
-import PersonalInfoForm from '../components/forms/PersonalInfoForm';
-import FamilyInfoForm from '../components/forms/FamilyInfoForm';
-import EducationExperienceForm from '../components/forms/EducationExperienceForm';
-import SkillsAbilitiesForm from '../components/forms/SkillsAbilitiesForm';
-import OthersReferencesForm from '../components/forms/OthersReferencesForm';
+import { generateEmail } from '../utils/companyEmailConfig';
 
 export default function AddEmployeePage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('personal');
   const [companyOptions, setCompanyOptions] = useState([]);
 
   // ดึงข้อมูล Role จาก LocalStorage เพื่อตรวจสอบว่าเป็น Admin หรือไม่
   const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
-  const isAdmin = String(userInfo.role_id) === '1';
+  const mockRole = localStorage.getItem('mockRole');
+  const isAdmin = String(userInfo.role_id) === '1' || mockRole === '1';
 
-  // 🌟 ดึงรายชื่อบริษัทสำหรับ Master Header จาก Database
+  const [departments, setDepartments] = useState([]);
+  const [positions, setPositions] = useState([]);
+  const [roles, setRoles] = useState([
+    { value: '1', label: 'Admin (ผู้ดูแลระบบ)' },
+    { value: '2', label: 'IT Support (เจ้าหน้าที่ไอที)' },
+    { value: '3', label: 'Employee (พนักงานทั่วไป)' },
+    { value: '4', label: 'HR (ฝ่ายบุคคล)' },
+    { value: '5', label: 'Manager (หัวหน้างาน)' }
+  ]);
+
+  const [formData, setFormData] = useState({
+    companyPrefix: '',
+    employeeCode: '',
+    email: '',
+    position: '',
+    departmentName: '',
+    roleId: '3',
+    startDate: new Date().toISOString().split('T')[0],
+    status: 'Active',
+
+    titleThai: 'นาย',
+    firstName: '',
+    lastName: '',
+    englishFirstName: '',
+    englishLastName: '',
+    nickname: '',
+    mobile: ''
+  });
+
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/companies');
+        const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/companies');
         const result = await response.json();
-        
         if (response.ok && result.status === 'success') {
-          // แปลงข้อมูลจาก { prefix, name } เป็น { value, label } เพื่อให้เข้ากับ SelectField
-          const formattedOptions = result.data.map(company => ({
-            value: company.prefix,
-            label: company.name
-          }));
-          setCompanyOptions(formattedOptions);
+          setCompanyOptions(result.data.map(c => ({ value: c.prefix, label: c.name })));
         }
       } catch (error) {
         console.error('Error fetching companies:', error);
       }
     };
+    
+    const fetchDepartments = async () => {
+      try {
+        const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/employees/departments');
+        const result = await response.json();
+        if (response.ok && result.status === 'success') {
+          setDepartments(result.data.map(d => d.name));
+        }
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+      }
+    };
+
+    const fetchPositions = async () => {
+      try {
+        const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/settings/positions');
+        const result = await response.json();
+        if (response.ok && result.status === 'success') {
+          setPositions(result.data.map(p => p.title));
+        }
+      } catch (error) {
+        console.error('Error fetching positions:', error);
+      }
+    };
 
     fetchCompanies();
+    fetchDepartments();
+    fetchPositions();
   }, []);
 
-  // Master State: เก็บข้อมูลทั้งหมดของฟอร์ม
-  const [formData, setFormData] = useState({
-    // --- ข้อมูลองค์กร (Master Header) ---
-    companyPrefix: '', employeeCode: '', email: '', 
-    position: '', // <-- เพิ่มฟิลด์ตำแหน่งตรงนี้
-    departmentId: '', roleId: '3',
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    // --- แท็บที่ 1: ข้อมูลส่วนบุคคล ---
-    titleThai: '', firstName: '', lastName: '',
-    titleEnglish: '', englishFirstName: '', englishLastName: '',
-    nickname: '', dateOfBirth: '', nationalId: '',
-    height: '', weight: '', bloodGroup: '', religion: '', maritalStatus: '', militaryStatus: '',
-    mobile: '', homePhone: '', personalEmail: '', homeAddress: '', currentAddress: '',
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      Swal.fire('ประเภทไฟล์ไม่ถูกต้อง', 'กรุณาอัปโหลดไฟล์รูปภาพ (JPEG, PNG, WEBP) เท่านั้น', 'warning');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire('ขนาดไฟล์ใหญ่เกินไป', 'ขนาดรูปภาพต้องไม่เกิน 5MB', 'warning');
+      return;
+    }
 
-    // --- แท็บที่ 2: ข้อมูลครอบครัว ---
-    parentStatus: 'อยู่ด้วยกัน', 
-    fatherName: '', fatherAge: '', fatherOccupation: '',
-    motherName: '', motherAge: '', motherOccupation: '',
-    totalSiblings: '', maleSiblings: '', femaleSiblings: '', siblingRank: '',
-    spouseName: '', spouseWorkplace: '', totalChildren: '', studyingChildren: '',
-    emergencyName: '', emergencyRelation: '', emergencyPhone: '', emergencyWorkplace: '',
-
-    // --- แท็บที่ 3: การศึกษา/ทำงาน ---
-    educations: [], experiences: [],
-
-    // --- แท็บที่ 4: ทักษะความสามารถ ---
-    thaiSpeak: '', thaiWrite: '', thaiRead: '',
-    engSpeak: '', engWrite: '', engRead: '',
-    otherLangName: '', otherSpeak: '', otherWrite: '', otherRead: '',
-    typingThai: '', typingEng: '', computerSkill: '', officeMachine: '',
-    driveCar: 'ไม่ได้', carLicense: '', carReg: '',
-    driveMoto: 'ไม่ได้', motoLicense: '', motoReg: '',
-    hobbies: '', sports: '', trainings: [],
-
-    // --- แท็บที่ 5: ข้อมูลอื่นๆ ---
-    severeIllness: 'ไม่เคย', illnessDetail: '',
-    prevApplied: 'ไม่เคย', prevAppliedWhen: '',
-    jobSource: '', expectedSalary: '',
-    friendInCompany: '', friendRelation: '',
-    ref1Name: '', ref1Occupation: '', ref1Relation: '', ref1Address: '', ref1Phone: '',
-    ref2Name: '', ref2Occupation: '', ref2Relation: '', ref2Address: '', ref2Phone: '',
-    houseType: '', relocationPlan: '', relocationDetail: '', selfIntroduction: ''
-  });
+    setProfileImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setProfileImagePreview(reader.result);
+    reader.readAsDataURL(file);
+  };
 
   // Auto-Generate รหัสพนักงาน
   useEffect(() => {
@@ -103,7 +123,7 @@ export default function AddEmployeePage() {
     }
     const fetchNextEmployeeCode = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/employees/next-code?prefix=${formData.companyPrefix}`);
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/employees/next-code?prefix=${formData.companyPrefix}`);
         const data = await response.json();
         if (response.ok && data.status === 'success') {
           setFormData(prev => ({ ...prev, employeeCode: data.nextCode }));
@@ -116,6 +136,19 @@ export default function AddEmployeePage() {
     return () => clearTimeout(timeoutId);
   }, [formData.companyPrefix]);
 
+  // Auto-Generate Email
+  useEffect(() => {
+    if (formData.englishFirstName && formData.englishLastName && formData.companyPrefix) {
+      const generated = generateEmail(formData.englishFirstName, formData.englishLastName, formData.companyPrefix);
+      setFormData(prev => {
+        if (!prev.email || prev.email.includes('@')) {
+           return { ...prev, email: generated };
+        }
+        return prev;
+      });
+    }
+  }, [formData.englishFirstName, formData.englishLastName, formData.companyPrefix]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -124,249 +157,321 @@ export default function AddEmployeePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(''); // เก็บ state error เดิมไว้เผื่อใช้แสดงใต้ Header
+    setError('');
 
-    // 1. ตรวจสอบข้อมูลเบื้องต้น (Validation)
-    if (!formData.companyPrefix || !formData.firstName || !formData.lastName || !formData.position) {
+    if (!formData.companyPrefix || !formData.firstName || !formData.lastName) {
+      setError('กรุณากรอกข้อมูลสำคัญ (บริษัท, ชื่อ และ นามสกุล) ให้ครบถ้วน');
       setIsLoading(false);
-      window.scrollTo(0, 0);
-      
-      // แจ้งเตือน: กรอกข้อมูลไม่ครบ (สีส้ม)
-      Swal.fire({
-        title: 'ข้อมูลไม่ครบถ้วน!',
-        text: 'กรุณากรอกข้อมูลสำคัญ (ชื่อ, นามสกุล, บริษัท และ ตำแหน่ง) ให้ครบถ้วน',
-        icon: 'warning',
-        confirmButtonColor: '#f59e0b',
-        confirmButtonText: 'ตกลง'
-      });
       return;
     }
 
     try {
-      // ยิง API ไปยัง Backend
-      const response = await fetch('http://localhost:5000/api/employees', {
+      const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/employees', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
       if (response.ok && data.status === 'success') {
-        // แจ้งเตือน: บันทึกสำเร็จ (สีเขียว)
-        Swal.fire({
-          title: 'สำเร็จ!',
-          text: 'บันทึกข้อมูลพนักงานเรียบร้อยแล้ว',
-          icon: 'success',
-          confirmButtonColor: '#2563eb', // ใช้สีน้ำเงินให้เข้ากับ Theme เว็บ
-          confirmButtonText: 'ไปที่หน้าแดชบอร์ด',
-          allowOutsideClick: false // บังคับให้กดปุ่มก่อนถึงจะไปต่อ
-        }).then((result) => {
-          if (result.isConfirmed) {
-            navigate('/dashboard'); // เปลี่ยนหน้าเมื่อกดปุ่มตกลง
+        const empId = data.employeeId;
+
+        // อัปโหลดรูปโปรไฟล์ (ถ้ามี)
+        if (profileImageFile && empId) {
+          try {
+            const imgFormData = new FormData();
+            imgFormData.append('profileImage', profileImageFile);
+
+            await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/employees/${empId}/profile-image`, {
+              method: 'POST',
+              body: imgFormData
+            });
+          } catch (imgErr) {
+            console.error('Error uploading profile image:', imgErr);
           }
+        }
+
+        Swal.fire({
+          icon: 'success',
+          title: 'บันทึกสำเร็จ!',
+          text: 'เพิ่มข้อมูลผู้ใช้งานระบบเรียบร้อยแล้ว',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          navigate('/employee-list');
         });
-        
       } else {
-        throw new Error(data.message || 'เกิดข้อผิดพลาดจากฝั่งเซิร์ฟเวอร์');
+        setError(data.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
       }
     } catch (err) {
-      // แจ้งเตือน: เกิดข้อผิดพลาด (สีแดง)
-      Swal.fire({
-        title: 'ผิดพลาด!',
-        text: err.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
-        icon: 'error',
-        confirmButtonColor: '#ef4444',
-        confirmButtonText: 'ลองใหม่อีกครั้ง'
-      });
-      setError(err.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+      console.error('Create User Error:', err);
+      setError('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ==========================================
-  // ฟังก์ชันสำหรับทดสอบ (ลบออกตอนเอาขึ้น Production)
-  // ==========================================
-  const fillMockData = () => {
-    setFormData(prev => ({
-      ...prev,
-      // ข้อมูลองค์กร
-      companyPrefix: 'AEP',
-      position: 'Full Stack Developer',
-      departmentId: '1',
-      roleId: '3',
-      email: 'dev.test@ascggroup.com',
-      
-      // ข้อมูลส่วนตัว
-      titleThai: 'นาย',
-      firstName: 'ทดสอบ',
-      lastName: 'ระบบงาน',
-      titleEnglish: 'Mr.',
-      englishFirstName: 'Test',
-      englishLastName: 'System',
-      nickname: 'เทส',
-      dateOfBirth: '1995-05-15',
-      nationalId: '1100112233445',
-      height: '175',
-      weight: '70',
-      bloodGroup: 'O',
-      religion: 'พุทธ',
-      maritalStatus: 'โสด',
-      militaryStatus: 'ผ่านเกณฑ์',
-      mobile: '0812345678',
-      personalEmail: 'test.system@gmail.com',
-      homeAddress: '123/45 ถ.สุขุมวิท แขวงคลองเตย เขตคลองเตย กทม. 10110',
-      currentAddress: 'เหมือนที่อยู่ตามทะเบียนบ้าน',
-
-      // ข้อมูลครอบครัว
-      parentStatus: 'อยู่ด้วยกัน',
-      fatherName: 'สมชาย ระบบงาน', fatherAge: '60', fatherOccupation: 'พนักงานเอกชน',
-      motherName: 'สมหญิง ระบบงาน', motherAge: '58', motherOccupation: 'แม่บ้าน',
-      totalSiblings: '2', maleSiblings: '1', femaleSiblings: '1', siblingRank: '1',
-      emergencyName: 'สมชาย ระบบงาน', emergencyRelation: 'บิดา', emergencyPhone: '0899999999',
-
-      // การศึกษา
-      educations: [
-        { level: 'ปริญญาตรี', institution: 'มหาวิทยาลัยเทคโนโลยี', major: 'วิทยาการคอมพิวเตอร์', startDate: '2013-05-01', endDate: '2017-03-31', gpa: '3.50' }
-      ],
-      
-      // ประสบการณ์ทำงาน
-      experiences: [
-        { company: 'บริษัท เทค ซอฟต์แวร์ จำกัด', businessType: 'Software House', startPosition: 'Junior Dev', endPosition: 'Senior Dev', startSalary: '25000', endSalary: '45000', startDate: '2017-06-01', endDate: '2023-12-31', description: 'พัฒนาเว็บแอปพลิเคชันด้วย React และ Node.js', reasonToLeave: 'ต้องการความท้าทายใหม่' }
-      ],
-
-      // ทักษะและความสามารถ
-      thaiSpeak: 'ดี', thaiWrite: 'ดี', thaiRead: 'ดี',
-      engSpeak: 'ปานกลาง', engWrite: 'ปานกลาง', engRead: 'ปานกลาง',
-      typingThai: '45', typingEng: '40',
-      computerSkill: 'React, Node.js, MySQL, Docker',
-      driveCar: 'ได้', carLicense: '6543210', carReg: 'กข 1234 กทม',
-      hobbies: 'เขียนโค้ด, เลี้ยงปลาสวยงาม, จัดสวน', sports: 'วิ่ง',
-
-      // ข้อมูลอื่นๆ
-      expectedSalary: '50000',
-      houseType: 'บ้านเช่า/หอพัก',
-      relocationPlan: 'ไม่โยกย้ายแน่ๆ'
-    }));
-  };
-
-  const TABS = [
-    { id: 'personal', label: 'ข้อมูลส่วนตัว', icon: User },
-    { id: 'family', label: 'ครอบครัว', icon: Users },
-    { id: 'education', label: 'การศึกษา/ทำงาน', icon: GraduationCap },
-    { id: 'skills', label: 'ทักษะพิเศษ', icon: Star },
-    { id: 'others', label: 'อื่นๆ', icon: FileText },
-  ];
-
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
-      {/* Page Header */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="max-w-4xl mx-auto pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* Top Header */}
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <UserPlus className="text-indigo-600" />
-            ทะเบียนประวัติพนักงานใหม่
-          </h1>
-          <p className="text-gray-500 mt-1">กรอกข้อมูลพนักงานใหม่เพื่อบันทึกลงในระบบ</p>
-        </div>
-
-        <div className="flex gap-3">
-          {/* --- ปุ่มเสกข้อมูล (สำหรับเทส) --- */}
-          <Button 
-            type="button" 
-            onClick={fillMockData} 
-            className="!w-auto !bg-gray-200 !text-gray-700 hover:!bg-gray-300"
+          <button 
+            onClick={() => navigate('/employee-list')}
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm mb-2"
           >
-            🪄 Auto Fill (Test)
-          </Button>
-
-          {/* --- ปุ่มบันทึกข้อมูลเดิม --- */}
-          <Button type="button" onClick={handleSubmit} isLoading={isLoading} className="!w-auto flex items-center gap-2 px-6">
-            <Save size={18} />
-            บันทึกข้อมูลทั้งหมด
-          </Button>
+            <ArrowLeft size={16} /> ย้อนกลับไปยังรายการผู้ใช้งาน
+          </button>
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <UserPlus className="text-[#f89919]" />
+            เพิ่มผู้ใช้งานระบบใหม่ (Add System User)
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">ลงทะเบียนผู้ใช้งานใหม่เพื่อผูกสิทธิ์ระบบและทรัพย์สินคอมพิวเตอร์บริษัท</p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto mt-4">
-        {error && (
-          <div className="mb-6 bg-red-50 text-red-700 p-4 rounded-lg flex items-center gap-3 text-sm border border-red-200">
-            <AlertCircle size={20} className="text-red-500 shrink-0" />
-            <p>{error}</p>
-          </div>
-        )}
-
-        {/* ============================================== */}
-        {/* MASTER HEADER: ข้อมูลการว่าจ้างองค์กร (อยู่นอกสุด) */}
-        {/* ============================================== */}
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6 border-l-4 border-l-blue-600">
-          <div className="flex items-center gap-2 mb-4">
-            <Building size={20} className="text-blue-600" />
-            <h2 className="text-lg font-bold text-gray-900">ข้อมูลการว่าจ้างองค์กร (Employment Status)</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div className="md:col-span-2">
-              <SelectField label="บริษัทต้นสังกัด (Company)" name="companyPrefix" value={formData.companyPrefix} onChange={handleChange} options={companyOptions} required disabled={isLoading} />
-            </div>
-            <InputField label="รหัสพนักงาน" name="employeeCode" icon={Hash} value={formData.employeeCode} onChange={() => {}} disabled={true} placeholder="Auto Generated" />
-            <InputField label="ตำแหน่ง (Position)" name="position" icon={Briefcase} value={formData.position} onChange={handleChange} required disabled={isLoading} placeholder="เช่น Software Engineer" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <SelectField
-              label="แผนก (Department)" name="departmentId" value={formData.departmentId} onChange={handleChange} required disabled={isLoading}
-              options={[{ value: '1', label: 'ไอทีและพัฒนาระบบ (IT)' }, { value: '2', label: 'ทรัพยากรบุคคล (HR)' }, { value: '3', label: 'การเงินและบัญชี (Finance)' }]}
-            />
-            <InputField label="อีเมลองค์กร (Company Email)" type="email" name="email" icon={Mail} value={formData.email} onChange={handleChange} disabled={isLoading || !isAdmin} placeholder="name@ascggroup.com" />
-            <SelectField
-              label="สิทธิ์การใช้งานระบบ (System Role)" name="roleId" value={formData.roleId} onChange={handleChange} required disabled={isLoading || !isAdmin}
-              options={[{ value: '1', label: 'ผู้ดูแลระบบ (Admin)' }, { value: '2', label: 'ทรัพยากรบุคคล (HR)' }, { value: '3', label: 'พนักงานทั่วไป (Employee)' }]}
-            />
-          </div>
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
+          <span>{error}</span>
         </div>
+      )}
 
-        {/* ============================================== */}
-        {/* TABS NAVIGATION & CONTENT */}
-        {/* ============================================== */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="flex overflow-x-auto border-b border-gray-200 bg-gray-50/50">
-            {TABS.map(tab => (
-              <button
-                key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap
-                  ${activeTab === tab.id ? 'border-blue-600 text-blue-600 bg-white' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        
+        {/* SECTION 1: Company & Account Setup */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">
+            <Building size={18} className="text-[#f89919]" />
+            <span>1. ข้อมูลบริษัทสังกัด และรหัสผู้ใช้งาน</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">บริษัทสังกัด <span className="text-red-500">*</span></label>
+              <select
+                name="companyPrefix"
+                value={formData.companyPrefix}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#f89919]/40 outline-none text-sm bg-white"
               >
-                <tab.icon size={18} className={activeTab === tab.id ? 'text-blue-600' : 'text-gray-400'} />
-                {tab.label}
-              </button>
-            ))}
-          </div>
+                <option value="">-- เลือกบริษัท --</option>
+                {companyOptions.map(c => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
+            </div>
 
-          <div className="p-8">
-            <form id="employee-form" onSubmit={handleSubmit}>
-              <div className={activeTab === 'personal' ? 'block' : 'hidden'}>
-                <PersonalInfoForm formData={formData} handleChange={handleChange} isLoading={isLoading} />
-              </div>
-              <div className={activeTab === 'family' ? 'block' : 'hidden'}>
-                <FamilyInfoForm formData={formData} handleChange={handleChange} isLoading={isLoading} />
-              </div>
-              <div className={activeTab === 'education' ? 'block' : 'hidden'}>
-                <EducationExperienceForm formData={formData} setFormData={setFormData} isLoading={isLoading} />
-              </div>
-              <div className={activeTab === 'skills' ? 'block' : 'hidden'}>
-                <SkillsAbilitiesForm formData={formData} handleChange={handleChange} setFormData={setFormData} isLoading={isLoading} />
-              </div>
-              <div className={activeTab === 'others' ? 'block' : 'hidden'}>
-                <OthersReferencesForm formData={formData} handleChange={handleChange} isLoading={isLoading} />
-              </div>
-            </form>
+            <InputField
+              label="รหัสผู้ใช้งาน (User Code)"
+              name="employeeCode"
+              value={formData.employeeCode}
+              onChange={handleChange}
+              placeholder="อัตโนมัติ"
+              readOnly
+              icon={Hash}
+            />
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">วันที่เริ่มงาน / เปิดใช้บัญชี</label>
+              <input
+                type="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#f89919]/40 outline-none text-sm bg-white"
+              />
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* SECTION 2: User Profile & Contact Info */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">
+            <User size={18} className="text-indigo-600" />
+            <span>2. ข้อมูลผู้ใช้งาน และช่องทางติดต่อ</span>
+          </div>
+
+          {/* Profile Avatar Upload */}
+          <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="relative">
+              {profileImagePreview ? (
+                <img src={profileImagePreview} alt="Preview" className="w-16 h-16 rounded-full object-cover border-2 border-[#f89919]" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center text-slate-400">
+                  <User size={28} />
+                </div>
+              )}
+              <label className="absolute bottom-0 right-0 p-1.5 bg-[#f89919] text-white rounded-full cursor-pointer shadow-sm hover:bg-[#d97c08] transition-colors">
+                <Camera size={12} />
+                <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              </label>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-800">รูปภาพโปรไฟล์ผู้ใช้งาน</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">รองรับไฟล์ PNG, JPG (ขนาดไม่เกิน 5MB)</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">คำนำหน้า</label>
+              <select
+                name="titleThai"
+                value={formData.titleThai}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none text-sm bg-white"
+              >
+                <option value="นาย">นาย</option>
+                <option value="นาง">นาง</option>
+                <option value="นางสาว">นางสาว</option>
+              </select>
+            </div>
+
+            <InputField
+              label="ชื่อจริง (ภาษาไทย) *"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+              placeholder="กรอกชื่อภาษาไทย"
+            />
+
+            <InputField
+              label="นามสกุล (ภาษาไทย) *"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+              placeholder="กรอกนามสกุล"
+            />
+
+            <InputField
+              label="ชื่อเล่น"
+              name="nickname"
+              value={formData.nickname}
+              onChange={handleChange}
+              placeholder="ชื่อเล่น"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <InputField
+              label="First Name (Eng)"
+              name="englishFirstName"
+              value={formData.englishFirstName}
+              onChange={handleChange}
+              placeholder="First Name"
+            />
+
+            <InputField
+              label="Last Name (Eng)"
+              name="englishLastName"
+              value={formData.englishLastName}
+              onChange={handleChange}
+              placeholder="Last Name"
+            />
+
+            <InputField
+              label="เบอร์โทรศัพท์ / ต่อภายใน"
+              name="mobile"
+              value={formData.mobile}
+              onChange={handleChange}
+              placeholder="08x-xxx-xxxx / Ext."
+              icon={Phone}
+            />
+          </div>
+        </div>
+
+        {/* SECTION 3: Department, Position, Email & System Role */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">
+            <Briefcase size={18} className="text-emerald-600" />
+            <span>3. ตำแหน่ง แผนก และสิทธิ์การใช้งานระบบ</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SearchableSelectField
+              label="แผนกสังกัด"
+              options={departments.map(d => ({ value: d, label: d }))}
+              value={formData.departmentName}
+              onChange={(val) => setFormData(prev => ({ ...prev, departmentName: val }))}
+              placeholder="เลือกหรือพิมพ์ชื่อแผนก..."
+              allowCustom
+            />
+
+            <SearchableSelectField
+              label="ตำแหน่งงาน"
+              options={positions.map(p => ({ value: p, label: p }))}
+              value={formData.position}
+              onChange={(val) => setFormData(prev => ({ ...prev, position: val }))}
+              placeholder="เลือกหรือพิมพ์ชื่อตำแหน่ง..."
+              allowCustom
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <InputField
+              label="อีเมลองค์กร (Company Email)"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="username@domain.com"
+              icon={Mail}
+            />
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">สิทธิ์ระบบ (System Role)</label>
+              <select
+                name="roleId"
+                value={formData.roleId}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none text-sm bg-white font-semibold text-slate-800"
+              >
+                {roles.map(r => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">สถานะบัญชี</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none text-sm bg-white font-bold text-emerald-700"
+              >
+                <option value="Active">เปิดใช้งาน (Active)</option>
+                <option value="Resigned">ปิดใช้งาน (Resigned)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-3 pt-4">
+          <button
+            type="button"
+            onClick={() => navigate('/employee-list')}
+            className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors text-sm font-semibold"
+          >
+            ยกเลิก
+          </button>
+
+          <Button
+            type="submit"
+            isLoading={isLoading}
+            className="bg-[#f89919] hover:bg-[#d97c08] text-white px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-[#f89919]/20 text-sm font-bold"
+          >
+            <Save size={18} />
+            <span>บันทึกข้อมูลผู้ใช้งาน</span>
+          </Button>
+        </div>
+
+      </form>
     </div>
   );
 }

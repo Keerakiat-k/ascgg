@@ -13,7 +13,7 @@ const login = async (req, res) => {
 
         // 2. ค้นหาพนักงานจากอีเมล พร้อม Join เอาชื่อ Role มาด้วย
         const [users] = await db.execute(`
-            SELECT e.id, e.email, e.status, r.name as role_name 
+            SELECT e.id, e.email, e.status, e.profile_image, r.name as role_name 
             FROM employees e
             JOIN roles r ON e.role_id = r.id
             WHERE e.email = ?
@@ -50,11 +50,23 @@ const login = async (req, res) => {
         // 6. อัปเดตเวลา Login ล่าสุด
         await db.execute(`UPDATE employee_credentials SET last_login = NOW() WHERE employee_id = ?`, [user.id]);
 
+        // 6.5. Fetch Permissions for this Role
+        const [permissionsRows] = await db.execute(`
+            SELECT p.key_name 
+            FROM role_permissions rp
+            JOIN permissions p ON rp.permission_id = p.id
+            WHERE rp.role_id = (SELECT role_id FROM employees WHERE id = ?)
+        `, [user.id]);
+        
+        const permissions = permissionsRows.map(row => row.key_name);
+
         // 7. สร้าง JWT Token (Payload ห้ามใส่ Password เด็ดขาด)
         const payload = {
             id: user.id,
             email: user.email,
-            role: user.role_name
+            role: user.role_name,
+            profile_image: user.profile_image,
+            permissions: permissions // เพิ่ม permissions เข้าไปใน token
         };
 
         const token = jwt.sign(payload, process.env.JWT_SECRET, { 

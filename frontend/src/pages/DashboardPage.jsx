@@ -1,43 +1,145 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import {
-  Users, UserPlus, ShieldAlert,
+  Users, UserPlus, UserMinus, ShieldAlert,
   FileText, Calendar, Wallet, CheckCircle, 
-  Clock, AlertCircle, BarChart3, TrendingUp
+  Clock, AlertCircle, BarChart3, TrendingUp,
+  Laptop, Server, Activity, ArrowRight, ExternalLink, Bell
 } from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
+import Swal from 'sweetalert2';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   
-  // ดึงค่ามาจาก AdminLayout ผ่าน Context
-  const { userRole, userName } = useOutletContext();
+  // ดึงค่ามาจาก AdminLayout ผ่าน Context อย่างปลอดภัย
+  const outletCtx = useOutletContext() || {};
+  const userRole = outletCtx.userRole || 'Guest';
+  const userName = outletCtx.userName || 'Guest';
   const [pendingTicketsCount, setPendingTicketsCount] = useState(0);
   const [stats, setStats] = useState({ totalEmployees: 0, newThisMonth: 0, resigned: 0 });
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [newEmployees, setNewEmployees] = useState([]);
+  const [resignedEmployees, setResignedEmployees] = useState([]);
+  const [myBalances, setMyBalances] = useState([]);
+  const [pendingLeaveApprovals, setPendingLeaveApprovals] = useState(0);
+  const [turnoverData, setTurnoverData] = useState([]);
+
+  // State สำหรับรายงานภาพรวมผู้บริหาร (Executive Real-Time Summary)
+  const [execSummary, setExecSummary] = useState({
+    total_computers: 110,
+    asset_counts: [
+      { company: 'AIC', computer_count: 57 },
+      { company: 'AIA', computer_count: 26 },
+      { company: 'CST', computer_count: 8 },
+      { company: 'SQT', computer_count: 8 },
+      { company: 'ASPD', computer_count: 3 },
+      { company: 'AEP', computer_count: 3 },
+      { company: 'Q-AIR', computer_count: 2 },
+      { company: 'AGC', computer_count: 2 },
+      { company: 'QPM', computer_count: 1 }
+    ],
+    helpdesk_summary: { total: 0, pending: 0, in_progress: 0, resolved: 0 },
+    network_logs: [
+      { location: 'ซอย 10 (Head Office)', device: 'FortiGate 70G', note: 'อัปเดตเปลี่ยน Firewall เป็นรุ่น 70G รุ่นใหม่แล้ว (ต้อง Upgrade Log Server)' },
+      { location: 'BD-8 (ซอย 74)', device: 'FortiGate 60F', note: 'ปริมาณการใช้งานปกติ' }
+    ]
+  });
 
   useEffect(() => {
-    // โหลดข้อมูลภาพรวมสำหรับ Admin/HR
+    // โหลดข้อมูลภาพรวมสำหรับ Admin/HR/IT Support
     const fetchStats = async () => {
       try {
-        if (userRole === '1' || userRole === '2') {
-          const empRes = await fetch('http://localhost:5000/api/employees');
-          const empData = await empRes.json();
+        const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+        const authHeaders = { 'Authorization': `Bearer ${token}` };
+
+        if (userRole === 'Admin' || userRole === 'HR' || userRole === 'IT Support') {
+          const empRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/employees', { headers: authHeaders });
           if (empRes.ok) {
+            const empData = await empRes.json();
             const emps = empData.data || [];
             setStats({
               totalEmployees: emps.filter(e => e.status === 'Active').length,
-              newThisMonth: Math.floor(Math.random() * 10), // Mock
-              resigned: emps.filter(e => e.status === 'Inactive').length
+              newThisMonth: emps.filter(e => {
+                if (!e.start_date) return false;
+                const startDate = new Date(e.start_date);
+                const now = new Date();
+                return startDate.getMonth() === now.getMonth() && startDate.getFullYear() === now.getFullYear();
+              }).length,
+              resigned: emps.filter(e => e.status === 'Resigned' || e.status === 'Inactive').length
             });
+          }
+
+          const activityRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/employees/stats/recent-activity', { headers: authHeaders });
+          if (activityRes.ok) {
+            const aData = await activityRes.json();
+            setRecentActivity(aData.data || []);
+          }
+
+          const turnoverRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/employees/stats/turnover', { headers: authHeaders });
+          if (turnoverRes.ok) {
+            const turnover = await turnoverRes.json();
+            setTurnoverData(turnover.data || []);
+          }
+
+          const roleRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/settings/roles', { headers: authHeaders });
+          if (roleRes.ok) {
+            const roleData = await roleRes.json();
+            setRoles(roleData.data || []);
           }
         }
         
-        if (userRole === '1') {
-          const ticketRes = await fetch('http://localhost:5000/api/it-support');
-          const ticketData = await ticketRes.json();
+        if (userRole === 'Admin' || userRole === 'IT Support') {
+          const ticketRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/it-support', { headers: authHeaders });
           if (ticketRes.ok) {
+            const ticketData = await ticketRes.json();
             setPendingTicketsCount(ticketData.data.filter(t => t.status === 'รอรับเรื่อง').length);
           }
+
+          const resignedRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/employees/resigned/current-month', { headers: authHeaders });
+          const resignedData = await resignedRes.json();
+          if (resignedRes.ok) {
+            setResignedEmployees(resignedData.data || []);
+          }
+
+          const newEmpRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/employees/new/current-month', { headers: authHeaders });
+          if (newEmpRes.ok) {
+            const newEmpData = await newEmpRes.json();
+            setNewEmployees(newEmpData.data || []);
+          }
+
+          // Fetch Executive Real-Time Summary for Admin & IT Support
+          const execRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/it-health-check/executive-summary', { headers: authHeaders });
+          if (execRes.ok) {
+            const execData = await execRes.json();
+            if (execData.status === 'success' && execData.data) {
+              setExecSummary(prev => ({
+                ...prev,
+                ...execData.data,
+                asset_counts: (execData.data.asset_counts && execData.data.asset_counts.length > 0) ? execData.data.asset_counts : prev.asset_counts
+              }));
+            }
+          }
         }
+
+        // Fetch leave data
+        if (userRole === 'Admin' || userRole === 'HR' || userRole === 'Manager') {
+          const leaveApprRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/leave/approvals', { headers: authHeaders });
+          if (leaveApprRes.ok) {
+            const leaveApprData = await leaveApprRes.json();
+            setPendingLeaveApprovals(leaveApprData.data ? leaveApprData.data.length : 0);
+          }
+        }
+
+        const balRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/leave/my-balances', { headers: authHeaders });
+        if (balRes.ok) {
+          const balData = await balRes.json();
+          setMyBalances(balData.data || []);
+        }
+
       } catch (error) {
         console.error('Error fetching dashboard stats', error);
       }
@@ -45,161 +147,204 @@ export default function DashboardPage() {
     fetchStats();
   }, [userRole]);
 
-  // ==========================================
+  // Handle Revoke / Grant Access
+  const handleRevokeAccess = async (empId, empName) => {
+    Swal.fire({
+      title: 'ยืนยันการเคลียร์สิทธิ์?',
+      text: `คุณต้องการเคลียร์สิทธิ์การเข้าถึงทั้งหมดของ ${empName} ใช่หรือไม่?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e11d48',
+      cancelButtonColor: '#9ca3af',
+      confirmButtonText: 'ใช่, เคลียร์สิทธิ์เลย',
+      cancelButtonText: 'ยกเลิก'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          Swal.fire({ title: 'กำลังดำเนินการ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+          
+          const token = localStorage.getItem('token');
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/employees/${empId}/revoke-access`, {
+            method: 'PUT',
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json' 
+            }
+          });
+          
+          if (res.ok) {
+            setResignedEmployees(prev => prev.filter(e => e.id !== empId));
+            Swal.fire('สำเร็จ!', 'เคลียร์สิทธิ์เรียบร้อยแล้ว', 'success');
+          } else {
+            throw new Error('Server error');
+          }
+        } catch (error) {
+          console.error('Error revoking access', error);
+          Swal.fire('ผิดพลาด', 'เกิดข้อผิดพลาดในการเคลียร์สิทธิ์', 'error');
+        }
+      }
+    });
+  };
+
+  const handleGrantAccess = async (empId, empName, companyPrefix, firstNameEn, lastNameEn) => {
+    const domainMap = {
+      'AEP': '@ascgengineering.com',
+      'AGC': '@ascggroup.com',
+      'AIA': '@interprocorp.com',
+      'AIC': '@ascggroup.com',
+      'CST': '@cstintergroup.com',
+      'QPM': '@qpmprevention.com',
+      'SQT': '@synergyqthai.com'
+    };
+    const suggestedDomain = domainMap[companyPrefix] || '';
+    let autoUsername = '';
+    if (firstNameEn && lastNameEn) {
+      autoUsername = `${firstNameEn.trim().toLowerCase()}.${lastNameEn.trim().charAt(0).toLowerCase()}`;
+    }
+    const suggestedEmail = autoUsername ? `${autoUsername}${suggestedDomain}` : suggestedDomain;
+    const roleOptions = roles.map(r => `<option value="${r.id}" ${r.name === 'Employee' ? 'selected' : ''}>${r.name}</option>`).join('');
+
+    await Swal.fire({
+      title: 'สร้างสิทธิ์การเข้าใช้งาน',
+      text: empName,
+      html: `
+        <div style="text-align: left; font-size: 13px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">อีเมลบริษัท:</label>
+          <input id="swal-input-email" class="swal2-input" value="${suggestedEmail}" style="width: 90%; margin: 0 0 15px 0;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">สิทธิ์การใช้งาน (Role):</label>
+          <select id="swal-input-role" class="swal2-select" style="width: 90%; margin: 0 0 15px 0;">${roleOptions}</select>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'บันทึกสิทธิ์',
+      cancelButtonText: 'ยกเลิก',
+      preConfirm: () => {
+        const email = document.getElementById('swal-input-email').value;
+        const roleId = document.getElementById('swal-input-role').value;
+        return { email, roleId };
+      }
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const { email, roleId } = result.value;
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/employees/${empId}/grant-access`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, roleId })
+        });
+        if (res.ok) {
+          setNewEmployees(prev => prev.filter(e => e.id !== empId));
+          Swal.fire('สำเร็จ!', 'สร้างสิทธิ์เรียบร้อยแล้ว', 'success');
+        }
+      }
+    });
+  };
+
   // 1. หน้าจอสำหรับ: พนักงานทั่วไป (Employee)
-  // ==========================================
   const renderEmployeeDashboard = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+    <div className="space-y-6 animate-fade-up">
+      <div className="rounded-2xl p-7 text-white relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #7c5c3e 0%, #ae8a68 50%, #f89919 100%)', boxShadow: '0 8px 24px rgba(248,153,25,0.2)' }}>
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, #fff 0%, transparent 60%)' }} />
         <div className="relative z-10">
-          <h2 className="text-3xl font-bold mb-2">สวัสดี, {userName} 👋</h2>
-          <p className="text-blue-100 max-w-lg">ยินดีต้อนรับเข้าสู่ระบบจัดการบุคลากร ตรวจสอบข้อมูลส่วนตัวหรือวันลาคงเหลือได้ที่นี่</p>
-        </div>
-        {/* Background Decoration */}
-        <div className="absolute top-0 right-0 p-8 opacity-10 transform translate-x-4 -translate-y-4">
-          <svg width="200" height="200" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+          <div className="text-sm font-medium text-amber-100 mb-1 tracking-wide">ยินดีต้อนรับกลับ</div>
+          <h2 className="text-2xl font-bold mb-1" style={{ letterSpacing: '-0.4px' }}>สวัสดี, {userName} 👋</h2>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>ตรวจสอบข้อมูลส่วนตัวหรือวันลาคงเหลือได้ที่นี่</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
-          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <Calendar size={24} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 stagger">
+        <div className="bg-white p-6 rounded-2xl border border-[#e9ebee] hover:border-orange-200 transition-all group cursor-default" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04)' }}>
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ background: '#fff7ed' }}>
+            <Calendar size={22} style={{ color: '#f89919' }} />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">วันลาคงเหลือ</h3>
-          <p className="text-slate-500 text-sm mt-1">พักร้อน 5 วัน | ลากิจ 3 วัน</p>
+          <h3 className="font-semibold text-slate-800 mb-1" style={{ fontSize: 15 }}>วันลาคงเหลือ</h3>
+          <p className="text-slate-500" style={{ fontSize: 13 }}>
+            {myBalances.length > 0
+              ? myBalances.map(b => `${b.leave_type_name} ${b.total_days - b.used_days - b.pending_days} วัน`).join(' | ')
+              : 'ไม่มีข้อมูลวันลา'}
+          </p>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
-          <div className="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <Wallet size={24} />
+        <div className="bg-white p-6 rounded-2xl border border-[#e9ebee] hover:border-orange-200 transition-all group cursor-default" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04)' }}>
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ background: '#fdf8f4' }}>
+            <Wallet size={22} style={{ color: '#ae8a68' }} />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">สลิปเงินเดือน</h3>
-          <p className="text-slate-500 text-sm mt-1">ดูสลิปเงินเดือนเดือนล่าสุดและย้อนหลัง</p>
+          <h3 className="font-semibold text-slate-800 mb-1" style={{ fontSize: 15 }}>สลิปเงินเดือน</h3>
+          <p className="text-slate-500" style={{ fontSize: 13 }}>ดูสลิปเงินเดือนเดือนล่าสุดและย้อนหลัง</p>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
-          <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <FileText size={24} />
+        <div
+          onClick={() => navigate('/profile')}
+          className="bg-white p-6 rounded-2xl border border-[#e9ebee] hover:border-orange-200 transition-all group cursor-pointer"
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04)' }}
+        >
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ background: '#fff7ed' }}>
+            <FileText size={22} style={{ color: '#f89919' }} />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">ข้อมูลส่วนตัว</h3>
-          <p className="text-slate-500 text-sm mt-1">ตรวจสอบและขอแก้ไขประวัติส่วนตัว</p>
+          <h3 className="font-semibold text-slate-800 mb-1" style={{ fontSize: 15 }}>ข้อมูลส่วนตัว</h3>
+          <p className="text-slate-500" style={{ fontSize: 13 }}>ตรวจสอบและขอแก้ไขประวัติส่วนตัว</p>
         </div>
       </div>
     </div>
   );
 
-  // ==========================================
   // 2. หน้าจอสำหรับ: ทรัพยากรบุคคล (HR)
-  // ==========================================
   const renderHRDashboard = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="mb-2">
-        <h2 className="text-2xl font-bold text-slate-900">ภาพรวมทรัพยากรบุคคล</h2>
-        <p className="text-slate-500">สถิติและข้อมูลพนักงานประจำเดือน</p>
+    <div className="space-y-6 animate-fade-up">
+      <div className="mb-1">
+        <h2 className="page-title">ภาพรวมทรัพยากรบุคคล</h2>
+        <p className="page-subtitle">สถิติและข้อมูลพนักงานประจำเดือน</p>
       </div>
 
-      {/* Info Boxes (AdminLTE style but modern) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute right-0 top-0 h-full w-2 bg-indigo-500"></div>
-          <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center shrink-0">
-            <Users size={28} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 stagger">
+        {[
+          { label: 'พนักงานทั้งหมด (Active)', value: stats.totalEmployees, icon: Users, color: '#f89919', bgColor: '#fff7ed', accent: '#f89919' },
+          { label: 'พนักงานใหม่ (เดือนนี้)', value: stats.newThisMonth, icon: UserPlus, color: '#059669', bgColor: '#ecfdf5', accent: '#10b981' },
+          { label: 'รออนุมัติวันลา', value: pendingLeaveApprovals, icon: Clock, color: '#d97706', bgColor: '#fffbeb', accent: '#f59e0b' },
+          { label: 'พนักงานพ้นสภาพ', value: stats.resigned, icon: AlertCircle, color: '#dc2626', bgColor: '#fff1f2', accent: '#f43f5e' },
+        ].map((item, i) => (
+          <div key={i} className="bg-white rounded-2xl p-5 border border-[#e9ebee] flex items-center gap-4 relative overflow-hidden transition-all hover:shadow-md" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+            <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: item.accent }} />
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: item.bgColor }}>
+              <item.icon size={24} style={{ color: item.color }} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-0.5">{item.label}</p>
+              <h3 className="text-3xl font-bold text-slate-900">{item.value}</h3>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-500 mb-1">พนักงานทั้งหมด (Active)</p>
-            <h3 className="text-3xl font-bold text-slate-900">{stats.totalEmployees}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute right-0 top-0 h-full w-2 bg-emerald-500"></div>
-          <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shrink-0">
-            <UserPlus size={28} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-500 mb-1">พนักงานใหม่ (เดือนนี้)</p>
-            <h3 className="text-3xl font-bold text-slate-900">{stats.newThisMonth}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute right-0 top-0 h-full w-2 bg-amber-500"></div>
-          <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center shrink-0">
-            <Clock size={28} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-500 mb-1">รออนุมัติวันลา</p>
-            <h3 className="text-3xl font-bold text-slate-900">12</h3>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute right-0 top-0 h-full w-2 bg-rose-500"></div>
-          <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center shrink-0">
-            <AlertCircle size={28} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-500 mb-1">พนักงานพ้นสภาพ</p>
-            <h3 className="text-3xl font-bold text-slate-900">{stats.resigned}</h3>
-          </div>
-        </div>
-      </div>
-
-      {/* Chart/Activity Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold text-slate-900 flex items-center gap-2"><TrendingUp size={20} className="text-indigo-500" /> อัตราการเข้าออกพนักงาน</h3>
-          </div>
-          <div className="h-64 flex items-center justify-center bg-slate-50 rounded-xl border border-slate-100 border-dashed">
-            <span className="text-slate-400 font-medium">ส่วนแสดงกราฟสถิติ (รอเชื่อมต่อข้อมูล)</span>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2"><Clock size={20} className="text-amber-500" /> กิจกรรมล่าสุด</h3>
-          <div className="space-y-4">
-            {[1, 2, 3].map((_, idx) => (
-              <div key={idx} className="flex gap-4">
-                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-slate-500">
-                  <CheckCircle size={18} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-900">อนุมัติวันลาของ สมชาย พนักงานบัญชี</p>
-                  <p className="text-xs text-slate-500 mt-1">2 ชั่วโมงที่แล้ว</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
 
-  // ==========================================
-  // 3. หน้าจอสำหรับ: ผู้ดูแลระบบ (Admin)
-  // ==========================================
+  // 3. หน้าจอสำหรับ: ผู้ดูแลระบบ (Admin & IT Support)
   const renderAdminDashboard = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="mb-2">
-        <h2 className="text-2xl font-bold text-slate-900">System Dashboard</h2>
-        <p className="text-slate-500">ภาพรวมระบบและการแจ้งเตือนสำหรับผู้ดูแลระบบ</p>
+    <div className="space-y-6 animate-fade-up">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="page-title">System & IT Operations</h2>
+          <p className="page-subtitle">ภาพรวมระบบไอทีโครงสร้างพื้นฐานและการแจ้งเตือน</p>
+        </div>
+        <button
+          onClick={() => navigate('/admin/it-health-check')}
+          className="btn-primary flex items-center gap-2 w-fit"
+        >
+          <Activity size={15} />
+          <span>ตรวจเช็คระบบรายวัน</span>
+          <ArrowRight size={13} />
+        </button>
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="bg-gradient-to-br from-[#f89919] to-[#d97c08] rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
           <div className="relative z-10 flex justify-between items-start">
             <div>
-              <p className="text-indigo-100 font-medium mb-1">พนักงานในระบบ (Active)</p>
+              <p className="text-amber-100 font-medium mb-1">พนักงานในระบบ (Active)</p>
               <h3 className="text-4xl font-bold">{stats.totalEmployees}</h3>
             </div>
             <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
               <Users size={24} className="text-white" />
             </div>
           </div>
-          <svg className="absolute -bottom-4 -right-4 w-32 h-32 text-indigo-400 opacity-30" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
         </div>
 
         <div className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden cursor-pointer hover:shadow-xl transition-shadow" onClick={() => navigate('/admin/it-support')}>
@@ -212,38 +357,98 @@ export default function DashboardPage() {
               <ShieldAlert size={24} className="text-white" />
             </div>
           </div>
-          <svg className="absolute -bottom-4 -right-4 w-32 h-32 text-rose-400 opacity-30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
-        </div>
-
-        <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-          <div className="relative z-10 flex justify-between items-start">
-            <div>
-              <p className="text-slate-300 font-medium mb-1">สถานะเซิร์ฟเวอร์</p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                </span>
-                <span className="text-2xl font-bold text-emerald-400">Online</span>
-              </div>
-            </div>
-            <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
-              <BarChart3 size={24} className="text-white" />
-            </div>
-          </div>
-          <svg className="absolute -bottom-4 -right-4 w-32 h-32 text-slate-600 opacity-30" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
         </div>
       </div>
 
+      {/* 🌟 🌟 EXECUTIVE OPERATIONS SUMMARY WIDGET (รายงานภาพรวมผู้บริหาร Real-Time) 🌟 🌟 */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-slate-900 text-[#f89919] rounded-xl">
+              <BarChart3 size={22} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">
+                รายงานภาพรวม (Operations Summary)
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                ข้อมูลเชื่อมโยงแบบ Real-time จากโมดูล Assets, Helpdesk และ IT Health Checks
+              </p>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => navigate('/admin/it-health-check')}
+            className="flex items-center gap-1.5 text-xs font-bold text-[#f89919] hover:underline"
+          >
+            <span>ดูรายงานฉบับเต็ม & Export Excel</span>
+            <ExternalLink size={14} />
+          </button>
+        </div>
+
+        {/* 1. Computer Breakdown by Company */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <Laptop size={16} className="text-[#f89919]" />
+              <span>สรุปจำนวนคอมพิวเตอร์ (PC / Notebook) แยกตามบริษัทในเครือ</span>
+            </h4>
+            <span className="text-xs font-extrabold text-[#f89919] bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+              รวมทั้งหมด {execSummary.total_computers || 110} เครื่อง
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {execSummary.asset_counts && execSummary.asset_counts.map((item, idx) => (
+              <div 
+                key={idx} 
+                onClick={() => navigate(`/admin/assets?company=${encodeURIComponent(item.company || '')}`)}
+                className="bg-slate-50 border border-slate-200 p-3 rounded-xl hover:border-[#f89919] hover:bg-orange-50/20 hover:shadow-xs cursor-pointer transition-all group"
+                title={`คลิกเพื่อดูรายการทรัพย์สินของ ${item.company || 'ไม่ระบุ'}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="text-[11px] font-bold text-slate-500 uppercase group-hover:text-[#f89919] transition-colors">{item.company || 'ไม่ระบุ'}</div>
+                  <span className="text-[10px] text-slate-400 group-hover:text-[#f89919] transition-colors">↗</span>
+                </div>
+                <div className="text-xl font-extrabold text-slate-900 mt-0.5">
+                  {item.computer_count} <span className="text-xs font-semibold text-slate-400">เครื่อง</span>
+                </div>
+                <div className="text-[10px] font-semibold text-emerald-600 mt-1 flex items-center gap-1">
+                  <CheckCircle size={10} /> ดูทรัพย์สิน {item.company} →
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 2. Infrastructure & Firewall Change Notes */}
+        <div className="space-y-3 pt-2">
+          <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <Server size={16} className="text-indigo-600" />
+            <span>หมายเหตุและประวัติการเปลี่ยนแปลงระบบ Network & Firewall</span>
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            {execSummary.network_logs && execSummary.network_logs.map((log, idx) => (
+              <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-3">
+                <ShieldAlert size={18} className="text-[#f89919] shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-bold text-slate-900">{log.location} — {log.device}</div>
+                  <div className="text-slate-600 mt-0.5">{log.note}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
     </div>
   );  
-  
+
   return (
     <>
-      {/* 🌟 แสดงหน้าจอตามสิทธิ์ (Role) 🌟 */}
-      {userRole === '1' && renderAdminDashboard()}
-      {userRole === '2' && renderHRDashboard()}
-      {userRole === '3' && renderEmployeeDashboard()}
+      {(userRole === 'Admin' || userRole === 'IT Support') && renderAdminDashboard()}
+      {userRole === 'HR' && renderHRDashboard()}
+      {(userRole === 'Employee' || userRole === 'Manager') && renderEmployeeDashboard()}
     </>
   );
 }

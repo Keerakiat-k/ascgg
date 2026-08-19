@@ -144,10 +144,10 @@ exports.getPositions = async (req, res) => {
 };
 
 exports.createPosition = async (req, res) => {
-  const { title, level_name } = req.body;
+  const { title, level } = req.body;
   if (!title) return res.status(400).json({ status: 'error', message: 'กรุณากรอกชื่อตำแหน่ง' });
   try {
-    await pool.query('INSERT INTO positions (title, level_name) VALUES (?, ?)', [title, level_name]);
+    await pool.query('INSERT INTO positions (title, level) VALUES (?, ?)', [title, level || 'Staff']);
     res.status(201).json({ status: 'success', message: 'เพิ่มตำแหน่งสำเร็จ' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
@@ -156,9 +156,9 @@ exports.createPosition = async (req, res) => {
 
 exports.updatePosition = async (req, res) => {
   const { id } = req.params;
-  const { title, level_name } = req.body;
+  const { title, level } = req.body;
   try {
-    await pool.query('UPDATE positions SET title = ?, level_name = ? WHERE id = ?', [title, level_name, id]);
+    await pool.query('UPDATE positions SET title = ?, level = ? WHERE id = ?', [title, level, id]);
     res.status(200).json({ status: 'success', message: 'แก้ไขตำแหน่งสำเร็จ' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
@@ -171,6 +171,58 @@ exports.deletePosition = async (req, res) => {
     await pool.query('DELETE FROM positions WHERE id = ?', [id]);
     res.status(200).json({ status: 'success', message: 'ลบตำแหน่งสำเร็จ' });
   } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+// ==========================================
+// 5. จัดการ Permissions แบบ Dynamic
+// ==========================================
+exports.getPermissions = async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM permissions ORDER BY module, id');
+    res.status(200).json({ status: 'success', data: rows });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+exports.getRolePermissions = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.query('SELECT permission_id FROM role_permissions WHERE role_id = ?', [id]);
+    res.status(200).json({ status: 'success', data: rows.map(r => r.permission_id) });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+exports.updateRolePermissions = async (req, res) => {
+  const { id } = req.params;
+  const { permissions } = req.body; // array of permission_id
+  try {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      // ลบสิทธิ์เดิมทั้งหมด
+      await connection.query('DELETE FROM role_permissions WHERE role_id = ?', [id]);
+      
+      // เพิ่มสิทธิ์ใหม่
+      if (permissions && permissions.length > 0) {
+        const values = permissions.map(permId => [id, permId]);
+        await connection.query('INSERT INTO role_permissions (role_id, permission_id) VALUES ?', [values]);
+      }
+      
+      await connection.commit();
+      res.status(200).json({ status: 'success', message: 'อัปเดตสิทธิ์สำเร็จ' });
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error('Error updating role permissions:', error);
     res.status(500).json({ status: 'error', message: error.message });
   }
 };

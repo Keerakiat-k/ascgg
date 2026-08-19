@@ -18,7 +18,10 @@ export default function ITSupportAdminPage() {
 
   const fetchTickets = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/it-support');
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/it-support', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       const result = await response.json();
       if (response.ok && result.status === 'success') {
         setTickets(result.data);
@@ -35,7 +38,7 @@ export default function ITSupportAdminPage() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'รอรับเรื่อง': return 'bg-orange-100 text-orange-700 border-orange-200';
-      case 'กำลังดำเนินการ': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'กำลังดำเนินการ': return 'bg-indigo-100 text-indigo-700 border-blue-200';
       case 'แก้ไขเสร็จสิ้น': return 'bg-green-100 text-green-700 border-green-200';
       default: return 'bg-slate-100 text-slate-700 border-slate-200';
     }
@@ -53,9 +56,13 @@ export default function ITSupportAdminPage() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/api/it-support/${selectedTicket.id}`, {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/it-support/${selectedTicket.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(updateData)
       });
       const result = await response.json();
@@ -211,14 +218,14 @@ export default function ITSupportAdminPage() {
           </button>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center">
+        <div className="bg-white p-5 rounded-2xl border border-[#dfe0df] shadow-sm mb-6 flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center">
             
             {/* แถบค้นหา */}
-            <div className="relative w-full lg:w-1/3">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#ae8a68]" size={18} />
               <input 
                 type="text" placeholder="ค้นหารหัส ชื่อ หรือแผนก..." 
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors"
+                className="w-full pl-10 pr-4 py-2 border border-[#dfe0df] rounded-xl focus:ring-2 focus:ring-[#f89919]/40 focus:border-[#f89919] outline-none bg-[#fff8f0]/50 focus:bg-white transition-colors text-sm"
                 value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
@@ -262,11 +269,11 @@ export default function ITSupportAdminPage() {
           </div>
 
           {/* ตารางข้อมูล */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-[#dfe0df] shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-600">
+                  <tr className="bg-[#fff8f0] border-b border-[#dfe0df] text-sm text-slate-700">
                     <th className="px-6 py-4 font-medium">รหัสทิกเก็ต</th>
                     <th className="px-6 py-4 font-medium">วันที่แจ้ง</th>
                     <th className="px-6 py-4 font-medium">ผู้แจ้ง (แผนก)</th>
@@ -350,8 +357,9 @@ export default function ITSupportAdminPage() {
         <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
           <PieChart size={20} /> รายละเอียดทิกเก็ต
         </h3>
-        <table className="w-full text-left border-collapse text-sm">
-          <thead>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-sm">
+            <thead>
             <tr className="bg-slate-100 border-y border-slate-300">
               <th className="py-3 px-2 font-bold text-slate-700">รหัส</th>
               <th className="py-3 px-2 font-bold text-slate-700">วันที่</th>
@@ -381,7 +389,7 @@ export default function ITSupportAdminPage() {
             ))}
           </tbody>
         </table>
-
+        </div>
 
       </div>
 
@@ -401,7 +409,7 @@ export default function ITSupportAdminPage() {
             </div>
 
             <div className="p-6 overflow-y-auto">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-6">
                 <div className="flex justify-between items-start mb-2">
                   <p className="text-sm text-slate-500">ปัญหาที่แจ้ง: ({selectedTicket.category})</p>
                   <span className={`text-xs font-bold px-2 py-0.5 rounded ${selectedTicket.urgency?.includes('สูง') ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-700'}`}>
@@ -434,7 +442,7 @@ export default function ITSupportAdminPage() {
                     <option value="รอรับเรื่อง">รอรับเรื่อง</option>
                     <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>
                     <option value="แก้ไขเสร็จสิ้น">แก้ไขเสร็จสิ้น</option>
-                    <option value="ยกเลิก">ยกเลิกรายการ</option>
+                    <option value="ยกเลิกรายการ">ยกเลิกรายการ</option>
                   </select>
                 </div>
 

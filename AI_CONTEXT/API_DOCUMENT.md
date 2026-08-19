@@ -69,16 +69,19 @@ Base URL: `http://localhost:5000/api` (อ้างอิงตามค่า D
 ### 4.1 Create Ticket
 - **Endpoint:** `/it-support`
 - **Method:** `POST`
-- **Description:** พนักงานเปิด Ticket แจ้งปัญหา
+- **Access:** Public
+- **Description:** พนักงานหรือบุคคลทั่วไปเปิด Ticket แจ้งปัญหา
 
 ### 4.2 Get All Tickets
 - **Endpoint:** `/it-support`
 - **Method:** `GET`
+- **Access:** Protected (verifyToken)
 - **Description:** ดึงรายการ Ticket ทั้งหมด (สำหรับ Admin)
 
 ### 4.3 Update Ticket
 - **Endpoint:** `/it-support/:id`
 - **Method:** `PUT`
+- **Access:** Protected (verifyToken)
 - **Description:** อัปเดตสถานะ หรือมอบหมายงานโดย Admin
 
 ## 5. Announcements (ประกาศข่าวสาร)
