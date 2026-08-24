@@ -112,6 +112,12 @@ const itHealthRoutes = require('./routes/itHealthRoutes');
 app.use('/api', itHealthRoutes);
 
 
+// -------------------------------------------------------------
+// Serve React Frontend Static Files & SPA Routing
+// -------------------------------------------------------------
+const distPath = path.join(__dirname, '../frontend/dist');
+app.use(express.static(distPath));
+
 // Global Error Handler (ดัก Error จาก Multer หรืออื่นๆ ให้ตอบกลับเป็น JSON)
 app.use((err, req, res, next) => {
     console.error('Global Error Handler:', err);
@@ -119,6 +125,14 @@ app.use((err, req, res, next) => {
         status: 'error',
         message: err.message || 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์'
     });
+});
+
+// Catch-all handler to serve React Frontend
+app.use((req, res) => {
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ status: 'error', message: 'API route not found' });
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
 });
 
 app.listen(port, '0.0.0.0', () => {
