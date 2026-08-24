@@ -134,10 +134,11 @@ exports.getAllEmployees = async (req, res) => {
       SELECT 
         e.id, e.company_prefix, e.employee_code, 
         CONCAT(COALESCE(e.title_th,''), e.first_name_th, ' ', e.last_name_th) AS full_name_th,
-        e.first_name_th, e.last_name_th, e.nickname, e.email, e.phone,
+        e.first_name_th, e.last_name_th, e.nickname, e.email, 
+        COALESCE(e.mobile, e.home_phone) AS phone,
         e.position, e.department_id, d.name AS department_name, e.status, e.start_date, e.created_at, e.role_id, e.profile_image,
         r.name AS role_name,
-        (SELECT COUNT(*) FROM assets a WHERE a.assigned_to_id = e.id OR a.employee_name LIKE CONCAT('%', e.first_name_th, '%')) AS asset_count
+        (SELECT COUNT(*) FROM assets a WHERE a.assigned_to = e.id OR a.assigned_to = e.employee_code) AS asset_count
       FROM employees e
       LEFT JOIN departments d ON e.department_id = d.id
       LEFT JOIN roles r ON e.role_id = r.id
@@ -295,12 +296,12 @@ exports.getResignedEmployeesThisMonth = async (req, res) => {
     const [rows] = await pool.query(`
       SELECT 
         id, company_prefix, employee_code, 
-        CONCAT(title_th, first_name_th, ' ', last_name_th) AS full_name_th,
+        CONCAT(COALESCE(title_th,''), first_name_th, ' ', last_name_th) AS full_name_th,
         position, resignation_date 
       FROM employees 
       WHERE status = 'Resigned' 
         AND resignation_date IS NOT NULL 
-        AND access_revoked = 0
+        AND COALESCE(access_revoked, 0) = 0
         AND MONTH(resignation_date) = MONTH(CURRENT_DATE())
         AND YEAR(resignation_date) = YEAR(CURRENT_DATE())
         AND employee_code NOT IN ('ADM-001', 'HR-001')
@@ -350,7 +351,7 @@ exports.getNewEmployeesThisMonth = async (req, res) => {
         position, start_date 
       FROM employees 
       WHERE status = 'Active' 
-        AND access_granted = 0
+        AND COALESCE(access_granted, 0) = 0
         AND employee_code NOT IN ('ADM-001', 'HR-001')
       ORDER BY created_at DESC
     `);
