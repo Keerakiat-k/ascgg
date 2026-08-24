@@ -196,14 +196,14 @@ export default function AnnouncementPage() {
       {/* ========== HERO SECTION ========== */}
       <section style={{ position: 'relative', overflow: 'hidden', padding: '68px 24px 76px' }}>
         {/* Background Image */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.3 }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center 40%', opacity: 0.42 }} />
         
         {/* Dynamic Gradient Overlay */}
         <div style={{
           position: 'absolute', inset: 0,
           background: viewMode === 'policies'
-            ? 'linear-gradient(160deg, #091326 0%, rgba(20,40,75,0.92) 50%, rgba(37,99,235,0.5) 100%)'
-            : 'linear-gradient(160deg, #0f0c08 0%, rgba(60,35,10,0.92) 50%, rgba(248,153,25,0.5) 100%)'
+            ? 'linear-gradient(160deg, #091326 0%, rgba(20,40,75,0.85) 50%, rgba(37,99,235,0.4) 100%)'
+            : 'linear-gradient(160deg, #0a0805 0%, rgba(40,24,8,0.82) 50%, rgba(248,153,25,0.4) 100%)'
         }} />
 
         <div style={{ position: 'relative', zIndex: 10, maxWidth: 740, margin: '0 auto', textAlign: 'center' }}>
