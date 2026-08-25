@@ -14,14 +14,26 @@ export default function LoginForm() {
   
   const navigate = useNavigate();
 
-  // ดึงข้อมูลอีเมล/ชื่อผู้ใช้ที่เคยจดจำไว้มาใส่ในฟอร์มอัตโนมัติ
+  // ตรวจสอบสถานะการเข้าสู่ระบบและดึงข้อมูลที่จดจำไว้
   useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    const rememberPref = localStorage.getItem('ascg_remember_me');
+
+    // ถ้ามี Token อยู่แล้ว ให้พาไป Dashboard ทันที
+    if (token) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+
+    // ดึงอีเมล/ชื่อผู้ใช้ที่บันทึกไว้
     const savedLogin = localStorage.getItem('ascg_remembered_email');
     if (savedLogin) {
       setEmail(savedLogin);
-      setRememberMe(true);
     }
-  }, []);
+    if (rememberPref !== null) {
+      setRememberMe(rememberPref === 'true');
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,25 +42,25 @@ export default function LoginForm() {
     try {
       const baseUrl = getApiBase();
 
-      // ยิง API ไปยัง Backend
+      // ยิง API ไปยัง Backend พร้อม flag rememberMe
       const response = await fetch(baseUrl + '/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, rememberMe }),
       });
 
       const data = await response.json();
 
       if (response.ok && data.status === 'success') {
-        // หากเลือกจดจำการเข้าสู่ระบบ ให้บันทึกอีเมลไว้
+        // หากเลือกจดจำการเข้าสู่ระบบ ให้บันทึกอีเมลและตั้งค่าไว้
         if (rememberMe) {
           localStorage.setItem('ascg_remembered_email', email);
           localStorage.setItem('ascg_remember_me', 'true');
         } else {
           localStorage.removeItem('ascg_remembered_email');
-          localStorage.removeItem('ascg_remember_me');
+          localStorage.setItem('ascg_remember_me', 'false');
         }
 
         // เก็บ Token ลง localStorage
@@ -57,7 +69,7 @@ export default function LoginForm() {
         localStorage.setItem('user_info', JSON.stringify(data.user));
         
         // เปลี่ยนหน้าไปที่ Dashboard
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       } else {
         // หากไม่สำเร็จ (เช่น รหัสผิด) ให้แสดงข้อความ Error จาก Backend
         setError(data.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');

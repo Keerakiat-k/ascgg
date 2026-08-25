@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, rememberMe } = req.body;
 
         // 1. Validation
         if (!email || !password) {
@@ -69,8 +69,9 @@ const login = async (req, res) => {
             permissions: permissions // เพิ่ม permissions เข้าไปใน token
         };
 
+        const tokenExpires = rememberMe ? '30d' : (process.env.JWT_EXPIRES_IN || '30d');
         const token = jwt.sign(payload, process.env.JWT_SECRET, { 
-            expiresIn: process.env.JWT_EXPIRES_IN || '8h' 
+            expiresIn: tokenExpires 
         });
 
         // 8. ส่งผลลัพธ์กลับไปยัง Client
