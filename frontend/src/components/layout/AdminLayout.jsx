@@ -93,13 +93,20 @@ export default function AdminLayout() {
       })
       .catch(err => console.error('Error fetching roles for simulation:', err));
 
-    // Fetch Notifications (IT Helpdesk Active Tickets)
+    // Fetch Notifications (New Employees, Resigned Employees & IT Helpdesk Active Tickets)
     const fetchNotifications = async () => {
       try {
         const authHeaders = { 'Authorization': `Bearer ${token}` };
-        if (userRole === 'Admin' || userRole === 'IT Support') {
-          const ticketRes = await fetch(`${baseUrl}/api/it-support`, { headers: authHeaders });
+        if (userRole === 'Admin' || userRole === 'IT Support' || userRole === 'HR') {
+          const [ticketRes, newEmpRes, resignedRes] = await Promise.all([
+            fetch(`${baseUrl}/api/it-support`, { headers: authHeaders }),
+            fetch(`${baseUrl}/api/employees/new/current-month`, { headers: authHeaders }),
+            fetch(`${baseUrl}/api/employees/resigned/current-month`, { headers: authHeaders })
+          ]);
+
           const tickets = ticketRes.ok ? (await ticketRes.json()).data || [] : [];
+          const newEmps = newEmpRes.ok ? (await newEmpRes.json()).data || [] : [];
+          const resignedEmps = resignedRes.ok ? (await resignedRes.json()).data || [] : [];
 
           // 🌟 คัดเฉพาะทิกเก็ตแจ้งซ่อมที่รอรับเรื่อง / กำลังดำเนินการ 🌟
           const activeTickets = tickets.filter(t => 
@@ -112,7 +119,9 @@ export default function AdminLayout() {
           );
 
           setNotifications({
-            pendingTickets: activeTickets
+            pendingTickets: activeTickets,
+            newEmployees: newEmps,
+            resignedEmployees: resignedEmps
           });
         }
       } catch (err) {
@@ -128,7 +137,9 @@ export default function AdminLayout() {
   }, [userRole, location.pathname]);
 
   const ticketCount = (notifications && Array.isArray(notifications.pendingTickets)) ? notifications.pendingTickets.length : 0;
-  const totalNotifs = ticketCount;
+  const newEmpCount = (notifications && Array.isArray(notifications.newEmployees)) ? notifications.newEmployees.length : 0;
+  const resignedCount = (notifications && Array.isArray(notifications.resignedEmployees)) ? notifications.resignedEmployees.length : 0;
+  const totalNotifs = ticketCount + newEmpCount + resignedCount;
 
   // Handle Direct Action Popups from Notification Dropdown (Original Full Rich Modal)
   const handleGrantAccessFromNotif = async (emp) => {
@@ -747,22 +758,70 @@ export default function AdminLayout() {
                       </div>
                     ) : (
                       <>
-                        {/* IT Helpdesk Pending Tickets */}
+                        {/* 1. New Employees Notification */}
+                        {(notifications?.newEmployees || []).map(emp => (
+                          <div 
+                            key={`new-emp-${emp.id}`}
+                            onClick={() => handleGrantAccessFromNotif(emp)}
+                            className="p-3 hover:bg-emerald-50/60 cursor-pointer flex items-start gap-3 transition-colors group border-l-4 border-emerald-500"
+                          >
+                            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                              <UserPlus size={16} />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-bold text-slate-900 flex items-center justify-between">
+                                <span>พนักงานเข้าใหม่: {emp.full_name_th}</span>
+                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold">เข้าใหม่</span>
+                              </div>
+                              <div className="text-slate-600 font-semibold text-[11px] mt-0.5">
+                                {emp.company_prefix} • {emp.position || 'พนักงานใหม่'}
+                              </div>
+                              <div className="text-[#f89919] font-bold text-[11px] mt-1 flex items-center gap-1">
+                                ⚡ คลิกเพื่อสร้างสิทธิ์และบันทึกอีเมล →
+                              </div>
+                            </div>
+                          </div>
+                        ))}
 
-                        {/* IT Helpdesk Pending Tickets */}
+                        {/* 2. Resigned Employees Notification */}
+                        {(notifications?.resignedEmployees || []).map(emp => (
+                          <div 
+                            key={`resigned-emp-${emp.id}`}
+                            onClick={() => handleRevokeAccessFromNotif(emp)}
+                            className="p-3 hover:bg-rose-50/60 cursor-pointer flex items-start gap-3 transition-colors group border-l-4 border-rose-500"
+                          >
+                            <div className="p-2 bg-rose-100 text-rose-600 rounded-xl shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                              <UserMinus size={16} />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-bold text-slate-900 flex items-center justify-between">
+                                <span>พนักงานพ้นสภาพ: {emp.full_name_th}</span>
+                                <span className="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full font-bold">พ้นสภาพ</span>
+                              </div>
+                              <div className="text-slate-600 font-semibold text-[11px] mt-0.5">
+                                {emp.company_prefix} • ลาออก: {emp.resignation_date ? new Date(emp.resignation_date).toLocaleDateString('th-TH') : '-'}
+                              </div>
+                              <div className="text-rose-600 font-bold text-[11px] mt-1 flex items-center gap-1">
+                                🗑️ คลิกเพื่อถอดสิทธิ์และเรียกคืนทรัพย์สิน →
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* 3. IT Helpdesk Pending Tickets */}
                         {(notifications?.pendingTickets || []).map(t => (
                           <div 
                             key={`ticket-${t.id}`}
                             onClick={() => { setIsNotifOpen(false); navigate('/admin/it-support'); }}
-                            className="p-3 hover:bg-amber-50/60 cursor-pointer flex items-start gap-3 transition-colors"
+                            className="p-3 hover:bg-amber-50/60 cursor-pointer flex items-start gap-3 transition-colors border-l-4 border-amber-500"
                           >
                             <div className="p-2 bg-amber-100 text-amber-600 rounded-xl shrink-0 mt-0.5">
                               <ShieldAlert size={16} />
                             </div>
-                            <div>
+                            <div className="flex-1">
                               <div className="font-bold text-slate-900">แจ้งซ่อม IT: {t.ticket_no || 'Helpdesk'}</div>
-                              <div className="text-slate-600 font-semibold">{t.name} • {t.category}</div>
-                              <div className={`font-bold mt-0.5 ${t.status === 'กำลังดำเนินการ' ? 'text-indigo-600' : 'text-amber-600'}`}>
+                              <div className="text-slate-600 font-semibold text-[11px]">{t.name} • {t.category}</div>
+                              <div className={`font-bold text-[11px] mt-0.5 ${t.status === 'กำลังดำเนินการ' ? 'text-indigo-600' : 'text-amber-600'}`}>
                                 {t.status === 'กำลังดำเนินการ' ? '🛠️ กำลังดำเนินการ' : '⏳ รอรับเรื่อง'}
                               </div>
                             </div>
