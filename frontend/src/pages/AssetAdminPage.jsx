@@ -5,7 +5,7 @@ import {
   ArrowRightLeft, Wrench, RotateCcw, Eye, Download, Printer, RefreshCw,
   CheckCircle2, Clock, Shield, Laptop, Monitor, Server, HardDrive, 
   Building2, MapPin, Tag, UserCheck, Calendar, DollarSign, X, Check,
-  Copy, Cpu, FileText, Layers, Sparkles, Archive
+  Copy, Cpu, FileText, Layers, Sparkles, Image, UploadCloud, Camera
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import ExcelJS from 'exceljs';
@@ -60,7 +60,8 @@ export default function AssetAdminPage() {
 
   const [activeAsset, setActiveAsset] = useState(null);
   const [assetDetail, setAssetDetail] = useState(null);
-  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Form Data State for Add/Edit
   const [formData, setFormData] = useState({
@@ -79,6 +80,7 @@ export default function AssetAdminPage() {
     ram: '',
     storage: '',
     display_size: '',
+    image_url: '',
     status: 'Available',
     assigned_to: '',
     parent_asset_id: '',
@@ -235,6 +237,7 @@ export default function AssetAdminPage() {
       ram: '',
       storage: '',
       display_size: '',
+      image_url: '',
       status: 'Available',
       assigned_to: '',
       parent_asset_id: '',
@@ -282,6 +285,7 @@ export default function AssetAdminPage() {
       ram: asset.ram || '',
       storage: asset.storage || '',
       display_size: asset.display_size || '',
+      image_url: asset.image_url || '',
       status: asset.status || 'Available',
       assigned_to: asset.assigned_to || '',
       parent_asset_id: asset.parent_asset_id || '',
@@ -303,6 +307,44 @@ export default function AssetAdminPage() {
       licenses: licList
     });
     setIsFormModalOpen(true);
+  };
+
+  // Upload Asset Image
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      Swal.fire('ไฟล์ไม่ถูกต้อง', 'กรุณาเลือกไฟล์รูปภาพเท่านั้น (JPG, PNG, WEBP)', 'warning');
+      return;
+    }
+
+    const uploadFormData = new FormData();
+    uploadFormData.append('image', file);
+
+    setIsUploadingImage(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/assets/upload-image`, {
+        method: 'POST',
+        body: uploadFormData
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setFormData(prev => ({ ...prev, image_url: data.data.url }));
+        Swal.fire({
+          title: 'อัปโหลดรูปภาพสำเร็จ',
+          icon: 'success',
+          timer: 1200,
+          showConfirmButton: false
+        });
+      } else {
+        throw new Error(data.message || 'อัปโหลดไม่สำเร็จ');
+      }
+    } catch (err) {
+      Swal.fire('ผิดพลาด', err.message, 'error');
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const handleCompanyChange = (e) => {
@@ -1059,14 +1101,31 @@ export default function AssetAdminPage() {
 
                       {/* Name & Model */}
                       <td className="py-3 px-4">
-                        <div className="font-bold text-slate-900 line-clamp-1">{asset.name || '-'}</div>
-                        <div className="text-slate-500 flex items-center gap-1 mt-0.5">
-                          <span>{asset.brand}</span>
-                          {asset.model && <span>• {asset.model}</span>}
+                        <div className="flex items-center gap-2.5">
+                          {asset.image_url ? (
+                            <img
+                              src={asset.image_url.startsWith('http') ? asset.image_url : `${import.meta.env.VITE_API_BASE_URL}${asset.image_url}`}
+                              alt={asset.name}
+                              className="w-10 h-10 rounded-lg object-cover border border-slate-200 shadow-2xs shrink-0 cursor-pointer hover:opacity-80 transition"
+                              onClick={() => handleOpenDetailModal(asset)}
+                              title="คลิกดูภาพขยาย"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-400 shrink-0">
+                              {asset.category === 'Notebook' ? <Laptop size={16} /> : asset.category === 'Monitor' ? <Monitor size={16} /> : asset.category === 'Server' ? <Server size={16} /> : <Package size={16} />}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="font-bold text-slate-900 line-clamp-1">{asset.name || '-'}</div>
+                            <div className="text-slate-500 flex items-center gap-1 mt-0.5">
+                              <span>{asset.brand}</span>
+                              {asset.model && <span>• {asset.model}</span>}
+                            </div>
+                            {asset.serial_number && (
+                              <div className="font-mono text-[10.5px] text-slate-400">S/N: {asset.serial_number}</div>
+                            )}
+                          </div>
                         </div>
-                        {asset.serial_number && (
-                          <div className="font-mono text-[10.5px] text-slate-400">S/N: {asset.serial_number}</div>
-                        )}
                       </td>
 
                       {/* Specs */}
@@ -1173,17 +1232,6 @@ export default function AssetAdminPage() {
                             <Edit size={14} />
                           </button>
 
-                          {/* Retire / ปลดระวาง */}
-                          {asset.status !== 'Retired' && (
-                            <button
-                              onClick={() => handleRetireAsset(asset)}
-                              className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-800 rounded-lg transition-colors"
-                              title="ปลดระวางทรัพย์สิน (Retire)"
-                            >
-                              <Archive size={14} />
-                            </button>
-                          )}
-
                           {/* Delete */}
                           <button
                             onClick={() => handleDeleteAsset(asset)}
@@ -1236,12 +1284,22 @@ export default function AssetAdminPage() {
                   </div>
 
                   {/* Row 2: Equipment Name */}
-                  <div>
-                    <div className="font-bold text-slate-900 text-sm">{asset.name || '-'}</div>
-                    <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                      <span>{asset.brand}</span>
-                      {asset.model && <span>• {asset.model}</span>}
-                      {asset.serial_number && <span className="font-mono text-slate-400">({asset.serial_number})</span>}
+                  <div className="flex items-center gap-2.5">
+                    {asset.image_url ? (
+                      <img
+                        src={asset.image_url.startsWith('http') ? asset.image_url : `${import.meta.env.VITE_API_BASE_URL}${asset.image_url}`}
+                        alt={asset.name}
+                        className="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-2xs shrink-0 cursor-pointer"
+                        onClick={() => handleOpenDetailModal(asset)}
+                      />
+                    ) : null}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-slate-900 text-sm line-clamp-1">{asset.name || '-'}</div>
+                      <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                        <span>{asset.brand}</span>
+                        {asset.model && <span>• {asset.model}</span>}
+                        {asset.serial_number && <span className="font-mono text-slate-400">({asset.serial_number})</span>}
+                      </div>
                     </div>
                   </div>
 
@@ -1303,15 +1361,6 @@ export default function AssetAdminPage() {
                       >
                         <Edit size={15} />
                       </button>
-                      {asset.status !== 'Retired' && (
-                        <button
-                          onClick={() => handleRetireAsset(asset)}
-                          className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-800 rounded-lg transition-colors"
-                          title="ปลดระวางทรัพย์สิน (Retire)"
-                        >
-                          <Archive size={15} />
-                        </button>
-                      )}
                       <button
                         onClick={() => handleDeleteAsset(asset)}
                         className="p-1.5 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
@@ -1405,6 +1454,84 @@ export default function AssetAdminPage() {
             {/* Modal Body */}
             <form onSubmit={handleSubmitForm} className="overflow-y-auto p-6 space-y-5 custom-scrollbar">
               
+              {/* Image Upload Section */}
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
+                <div className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Camera size={14} className="text-orange-600" />
+                    <span>รูปภาพทรัพย์สิน (Asset Photo)</span>
+                  </div>
+                  <span className="text-[10.5px] text-slate-400 font-normal">รองรับไฟล์ JPG, PNG, WEBP ขนาดไม่เกิน 10MB</span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  {formData.image_url ? (
+                    <div className="relative group w-32 h-24 rounded-xl overflow-hidden border-2 border-orange-300 shadow-sm bg-white shrink-0">
+                      <img 
+                        src={formData.image_url.startsWith('http') ? formData.image_url : `${import.meta.env.VITE_API_BASE_URL}${formData.image_url}`} 
+                        alt="Asset preview" 
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
+                        className="absolute top-1 right-1 p-1 rounded-full bg-red-600/80 hover:bg-red-600 text-white text-xs shadow transition"
+                        title="ลบรูปภาพ"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-32 h-24 rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center text-slate-400 shrink-0">
+                      <Image size={24} className="mb-1 text-slate-300" />
+                      <span className="text-[10px]">ยังไม่มีรูป</span>
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-2 w-full sm:w-auto">
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleImageUpload} 
+                      accept="image/*" 
+                      className="hidden" 
+                    />
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploadingImage}
+                        className="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition disabled:opacity-50"
+                      >
+                        {isUploadingImage ? (
+                          <>
+                            <div className="w-3.5 h-3.5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                            <span>กำลังอัปโหลด...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud size={14} className="text-orange-600" />
+                            <span>{formData.image_url ? 'เปลี่ยนรูปภาพ' : 'เลือกรูปภาพอุปกรณ์'}</span>
+                          </>
+                        )}
+                      </button>
+                      {formData.image_url && (
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
+                          className="px-2.5 py-1.5 rounded-lg text-red-600 hover:bg-red-50 text-xs font-medium transition"
+                        >
+                          ลบรูป
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      อัปโหลดรูปตัวเครื่องจริง ป้ายแท็ก หรือสภาพอุปกรณ์เพื่อใช้ในการตรวจสอบและบันทึกประวัติ
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Section 1: สังกัดและรหัสทรัพย์สิน */}
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3.5">
                 <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
@@ -2133,33 +2260,44 @@ export default function AssetAdminPage() {
                 </div>
               ) : (
                 <>
-                  {/* Grid 1: Basic Specs */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200/80 text-xs">
-                    <div>
-                      <span className="text-slate-400 block text-[10.5px]">บริษัทเจ้าของ</span>
-                      <strong className="text-slate-800">{activeAsset.owner_company || activeAsset.company || '-'}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[10.5px]">แผนกปัจจุบัน</span>
-                      <strong className="text-slate-800">{activeAsset.department || '-'}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[10.5px]">สาขา / สถานที่</span>
-                      <strong className="text-slate-800">{activeAsset.location || '-'}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[10.5px]">ผู้ถือครองปัจจุบัน</span>
-                      <strong className="text-slate-900">{activeAsset.assigned_employee_name || 'คลังส่วนกลาง'}</strong>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <span className="text-slate-400 block text-[10.5px]">Serial Number</span>
-                      <strong className="font-mono text-slate-800">{activeAsset.serial_number || '-'}</strong>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <span className="text-slate-400 block text-[10.5px]">สเปกฮาร์ดแวร์</span>
-                      <strong className="text-slate-800">
-                        {activeAsset.cpu || '-'} | RAM {activeAsset.ram || '-'}GB | {activeAsset.storage || '-'}
-                      </strong>
+                  {/* Asset Photo & Grid 1: Basic Specs */}
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    {activeAsset.image_url && (
+                      <div className="sm:w-44 h-40 rounded-xl overflow-hidden border border-slate-200 shadow-xs bg-slate-100 shrink-0">
+                        <img 
+                          src={activeAsset.image_url.startsWith('http') ? activeAsset.image_url : `${import.meta.env.VITE_API_BASE_URL}${activeAsset.image_url}`} 
+                          alt={activeAsset.name} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200/80 text-xs">
+                      <div>
+                        <span className="text-slate-400 block text-[10.5px]">บริษัทเจ้าของ</span>
+                        <strong className="text-slate-800">{activeAsset.owner_company || activeAsset.company || '-'}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10.5px]">แผนกปัจจุบัน</span>
+                        <strong className="text-slate-800">{activeAsset.department || '-'}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10.5px]">สาขา / สถานที่</span>
+                        <strong className="text-slate-800">{activeAsset.location || '-'}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10.5px]">ผู้ถือครองปัจจุบัน</span>
+                        <strong className="text-slate-900">{activeAsset.assigned_employee_name || 'คลังส่วนกลาง'}</strong>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="text-slate-400 block text-[10.5px]">Serial Number</span>
+                        <strong className="font-mono text-slate-800">{activeAsset.serial_number || '-'}</strong>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="text-slate-400 block text-[10.5px]">สเปกฮาร์ดแวร์</span>
+                        <strong className="text-slate-800">
+                          {activeAsset.cpu || '-'} | RAM {activeAsset.ram || '-'}GB | {activeAsset.storage || '-'}
+                        </strong>
+                      </div>
                     </div>
                   </div>
 
