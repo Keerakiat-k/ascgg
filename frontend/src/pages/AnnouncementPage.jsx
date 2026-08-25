@@ -729,12 +729,16 @@ export default function AnnouncementPage() {
         </div>
       </footer>
 
-      {/* ========== 7. RICH READER MODAL (FULL UNCROPPED IMAGE) ========== */}
+      {/* ========== 7. RICH READER MODAL (LARGE FULL-RESOLUTION VIEW) ========== */}
       {selectedAnnouncement && (() => {
         const badge = getBadgeStyle(selectedAnnouncement.type);
         const isPolicyModal = selectedAnnouncement.type === 'นโยบายองค์กร';
+        const imageUrl = selectedAnnouncement.cover_image 
+          ? `${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${selectedAnnouncement.cover_image}` 
+          : null;
+
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto">
             
             {/* Backdrop */}
             <div
@@ -743,98 +747,106 @@ export default function AnnouncementPage() {
             />
 
             {/* Modal Dialog Card */}
-            <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] z-10 animate-scale-in">
+            <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh] z-10 animate-scale-in">
               
-              {/* Close Button Top-Right */}
-              <button
-                onClick={() => setSelectedAnnouncement(null)}
-                className="absolute top-3.5 right-3.5 z-30 p-2 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white shadow-lg backdrop-blur-md transition-all active:scale-95"
-                title="ปิดหน้าต่าง (Esc)"
-              >
-                <X size={18} />
-              </button>
-
-              {/* Modal Full Media View (No Cropping) */}
-              {selectedAnnouncement.cover_image ? (
-                <div className="relative w-full bg-slate-950 flex items-center justify-center p-3 sm:p-5 max-h-[50vh] sm:max-h-[55vh] overflow-hidden flex-shrink-0">
-                  {/* Subtle ambient backdrop */}
-                  <img
-                    src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${selectedAnnouncement.cover_image}`}
-                    alt=""
-                    aria-hidden="true"
-                    className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-35 scale-125"
-                  />
-                  {/* Full sharp uncropped image */}
-                  <img
-                    src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${selectedAnnouncement.cover_image}`}
-                    alt={selectedAnnouncement.title}
-                    className="relative z-10 max-h-[46vh] sm:max-h-[50vh] w-auto max-w-full object-contain rounded-xl shadow-2xl ring-1 ring-white/10"
-                  />
+              {/* Modal Sticky Header Bar */}
+              <div className="p-4 sm:p-5 bg-white border-b border-slate-100 flex items-center justify-between gap-4 flex-shrink-0 z-20">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <span 
+                    style={{ backgroundColor: badge.bg, color: badge.text, borderColor: badge.border }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: badge.dot }} />
+                    {selectedAnnouncement.type}
+                  </span>
+                  <span className="flex items-center gap-1 text-xs text-slate-500 font-medium">
+                    <Clock size={12} className="text-slate-400" />
+                    {formatDate(selectedAnnouncement.created_at)}
+                  </span>
                 </div>
-              ) : (
-                <div className={`w-full h-24 flex items-center justify-center flex-shrink-0 ${
-                  isPolicyModal
-                    ? 'bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900'
-                    : 'bg-gradient-to-r from-amber-900 via-orange-900 to-slate-900'
-                }`}>
-                  {isPolicyModal ? (
-                    <ShieldCheck size={44} className="text-blue-400/40" />
-                  ) : (
-                    <Megaphone size={40} className="text-amber-400/40" />
-                  )}
-                </div>
-              )}
 
-              {/* Modal Scrollable Body */}
-              <div className="p-6 sm:p-8 overflow-y-auto flex-1 custom-scrollbar">
-                
-                {/* Meta Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-100">
-                  <div className="flex items-center gap-2">
-                    <span 
-                      style={{ backgroundColor: badge.bg, color: badge.text, borderColor: badge.border }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border"
+                <div className="flex items-center gap-2">
+                  {imageUrl && (
+                    <a
+                      href={imageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+                      title="เปิดดูรูปภาพขนาดเต็มในแท็บใหม่"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: badge.dot }} />
-                      {selectedAnnouncement.type}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-slate-600 font-medium">
-                      <Clock size={12} className="text-slate-400" />
-                      {formatDate(selectedAnnouncement.created_at)}
-                    </span>
-                  </div>
+                      <ArrowUpRight size={14} />
+                      <span className="hidden sm:inline">ดูรูปขนาดเต็ม</span>
+                    </a>
+                  )}
 
                   <button
                     onClick={(e) => handleShare(e, selectedAnnouncement)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-amber-600 transition"
+                    className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition flex items-center gap-1"
+                    title="คัดลอกลิงก์"
                   >
-                    <Share2 size={13} />
-                    <span>แชร์ลิงก์</span>
+                    <Share2 size={14} />
+                    <span className="hidden sm:inline">แชร์</span>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedAnnouncement(null)}
+                    className="p-1.5 sm:p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition active:scale-95 ml-1"
+                    title="ปิดหน้าต่าง (Esc)"
+                  >
+                    <X size={18} />
                   </button>
                 </div>
+              </div>
 
+              {/* Modal Scrollable Body */}
+              <div className="p-4 sm:p-6 md:p-8 overflow-y-auto flex-1 custom-scrollbar bg-slate-50/50">
+                
                 {/* Main Title */}
-                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug mb-4">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 leading-snug mb-3">
                   {selectedAnnouncement.title}
                 </h3>
 
-                {/* Content */}
-                <div className="text-slate-700 text-sm sm:text-base leading-relaxed whitespace-pre-wrap font-normal">
-                  {selectedAnnouncement.content}
-                </div>
+                {/* Content Text (if any) */}
+                {selectedAnnouncement.content && (
+                  <div className="text-slate-700 text-sm sm:text-base leading-relaxed whitespace-pre-wrap font-normal mb-6 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                    {selectedAnnouncement.content}
+                  </div>
+                )}
+
+                {/* Large High-Resolution Poster / Image */}
+                {imageUrl && (
+                  <div className="mt-4 flex flex-col items-center">
+                    <div className="relative group w-full flex justify-center bg-white p-2 sm:p-4 rounded-3xl border border-slate-200 shadow-md">
+                      <img
+                        src={imageUrl}
+                        alt={selectedAnnouncement.title}
+                        className="w-full max-w-3xl h-auto object-contain rounded-2xl shadow-xs"
+                      />
+                      <a
+                        href={imageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute bottom-6 right-6 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-900 text-white text-xs font-bold backdrop-blur-md shadow-lg transition transform hover:scale-105"
+                      >
+                        <ArrowUpRight size={14} />
+                        <span>ขยายรูปภาพเต็มจอ</span>
+                      </a>
+                    </div>
+                  </div>
+                )}
 
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
-                <div className="text-xs text-slate-600 font-medium flex items-center gap-1">
-                  <Building2 size={13} className="text-slate-400" />
+              <div className="p-4 sm:p-5 bg-white border-t border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
+                <div className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                  <Building2 size={14} className="text-slate-400" />
                   <span>ฝ่ายบริหารและทรัพยากรบุคคล ASCG Group</span>
                 </div>
 
                 <button
                   onClick={() => setSelectedAnnouncement(null)}
-                  className={`px-5 py-2 rounded-xl text-xs font-bold text-white transition-all shadow-md active:scale-95 ${
+                  className={`px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white transition-all shadow-md active:scale-95 ${
                     isPolicyModal
                       ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'
                       : 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/20'
