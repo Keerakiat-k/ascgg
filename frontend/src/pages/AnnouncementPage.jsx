@@ -672,13 +672,9 @@ export default function AnnouncementPage() {
 
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400">
-            <div>ASCG Enterprise Portal System v2.6.4 (Cloud MariaDB Connected)</div>
-            <div className="flex items-center gap-4">
-              <span>Security Standard: TLS 1.3</span>
-              <span>•</span>
-              <span>Single Sign-On Ready</span>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11.5px] text-slate-400">
+            <div>ASCG Enterprise Portal — ระบบสารสนเทศและบริการกลางองค์กร</div>
+            <div className="text-slate-400">ดูแลและพัฒนาโดย ฝ่ายเทคโนโลยีสารสนเทศ (IT Department)</div>
           </div>
         </div>
       </footer>
