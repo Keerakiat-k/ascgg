@@ -1814,12 +1814,95 @@ export default function AssetAdminPage() {
                 </div>
               </div>
 
-              {/* Section 4: ข้อมูลลิขสิทธิ์ซอฟต์แวร์ (Software Licenses) */}
+              {/* Section 4: ข้อมูลการจัดซื้อ เลขที่ PO และการรับประกัน */}
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3.5">
+                <div className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign size={14} className="text-amber-600" />
+                    <span>4. ข้อมูลการจัดซื้อ เลขที่ PO และการรับประกัน (PO & Warranty)</span>
+                  </div>
+                  <span className="text-[10.5px] text-slate-400 font-normal">บันทึกเลขที่ใบสั่งซื้อ ราคา และวันหมดอายุประกัน</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* Left Box: ข้อมูลการสั่งซื้อ */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200/60 space-y-2.5">
+                    <div className="text-[10.5px] font-bold text-slate-700 flex items-center gap-1">
+                      <FileText size={13} className="text-blue-600" />
+                      <span>ข้อมูลการสั่งซื้อ (Purchase Details)</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">เลขที่ใบสั่งซื้อ (PO Number)</label>
+                        <input
+                          type="text"
+                          value={formData.po_number}
+                          onChange={(e) => setFormData(prev => ({ ...prev, po_number: e.target.value }))}
+                          placeholder="เช่น PO67-0012, PO-AIC-2024"
+                          className="input-base text-xs py-1.5 font-mono font-semibold"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[11px] font-medium text-slate-600 mb-1">วันที่จัดซื้อ</label>
+                          <input
+                            type="date"
+                            value={formData.purchase_date}
+                            onChange={(e) => setFormData(prev => ({ ...prev, purchase_date: e.target.value }))}
+                            className="input-base text-xs py-1.5 bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-medium text-slate-600 mb-1">ราคาจัดซื้อ (บาท)</label>
+                          <input
+                            type="number"
+                            value={formData.price}
+                            onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                            placeholder="0.00"
+                            className="input-base text-xs py-1.5"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Box: ข้อมูลการรับประกัน */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200/60 space-y-2.5">
+                    <div className="text-[10.5px] font-bold text-slate-700 flex items-center gap-1">
+                      <Shield size={13} className="text-amber-600" />
+                      <span>ข้อมูลการรับประกัน (Warranty Details)</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">ระยะเวลารับประกัน (Warranty Period)</label>
+                        <input
+                          type="text"
+                          value={formData.warranty_period}
+                          onChange={(e) => setFormData(prev => ({ ...prev, warranty_period: e.target.value }))}
+                          placeholder="เช่น 1 ปี, 3 ปี, 36 เดือน Onsite Service"
+                          className="input-base text-xs py-1.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">วันหมดอายุประกัน (Expiry Date)</label>
+                        <input
+                          type="date"
+                          value={formData.warranty_expire_date}
+                          onChange={(e) => setFormData(prev => ({ ...prev, warranty_expire_date: e.target.value }))}
+                          className="input-base text-xs py-1.5 bg-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 5: ข้อมูลลิขสิทธิ์ซอฟต์แวร์ (Software Licenses) */}
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3.5">
                 <div className="text-xs font-bold text-slate-800 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <Shield size={14} className="text-emerald-600" />
-                    <span>4. ลิขสิทธิ์ซอฟต์แวร์ประจำเครื่อง (Software Licenses & Keys)</span>
+                    <span>5. ลิขสิทธิ์ซอฟต์แวร์ประจำเครื่อง (Software Licenses & Keys)</span>
                   </div>
                   <span className="text-[10.5px] text-slate-400 font-normal">บันทึก Key และบัญชีเข้าใช้งาน</span>
                 </div>
@@ -1928,89 +2011,6 @@ export default function AssetAdminPage() {
                   </div>
                 </div>
 
-              </div>
-
-              {/* Section 5: ข้อมูลการจัดซื้อ เลขที่ PO และการรับประกัน */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3.5">
-                <div className="text-xs font-bold text-slate-800 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <DollarSign size={14} className="text-amber-600" />
-                    <span>5. ข้อมูลการจัดซื้อ เลขที่ PO และการรับประกัน (PO & Warranty)</span>
-                  </div>
-                  <span className="text-[10.5px] text-slate-400 font-normal">บันทึกเลขที่ใบสั่งซื้อ ราคา และวันหมดอายุประกัน</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {/* Left Box: ข้อมูลการสั่งซื้อ */}
-                  <div className="p-3 bg-white rounded-lg border border-slate-200/60 space-y-2.5">
-                    <div className="text-[10.5px] font-bold text-slate-700 flex items-center gap-1">
-                      <FileText size={13} className="text-blue-600" />
-                      <span>ข้อมูลการสั่งซื้อ (Purchase Details)</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div>
-                        <label className="block text-[11px] font-medium text-slate-600 mb-1">เลขที่ใบสั่งซื้อ (PO Number)</label>
-                        <input
-                          type="text"
-                          value={formData.po_number}
-                          onChange={(e) => setFormData(prev => ({ ...prev, po_number: e.target.value }))}
-                          placeholder="เช่น PO67-0012, PO-AIC-2024"
-                          className="input-base text-xs py-1.5 font-mono font-semibold"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-[11px] font-medium text-slate-600 mb-1">วันที่จัดซื้อ</label>
-                          <input
-                            type="date"
-                            value={formData.purchase_date}
-                            onChange={(e) => setFormData(prev => ({ ...prev, purchase_date: e.target.value }))}
-                            className="input-base text-xs py-1.5 bg-white"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-medium text-slate-600 mb-1">ราคาจัดซื้อ (บาท)</label>
-                          <input
-                            type="number"
-                            value={formData.price}
-                            onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                            placeholder="0.00"
-                            className="input-base text-xs py-1.5"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Box: ข้อมูลการรับประกัน */}
-                  <div className="p-3 bg-white rounded-lg border border-slate-200/60 space-y-2.5">
-                    <div className="text-[10.5px] font-bold text-slate-700 flex items-center gap-1">
-                      <Shield size={13} className="text-amber-600" />
-                      <span>ข้อมูลการรับประกัน (Warranty Details)</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div>
-                        <label className="block text-[11px] font-medium text-slate-600 mb-1">ระยะเวลารับประกัน (Warranty Period)</label>
-                        <input
-                          type="text"
-                          value={formData.warranty_period}
-                          onChange={(e) => setFormData(prev => ({ ...prev, warranty_period: e.target.value }))}
-                          placeholder="เช่น 1 ปี, 3 ปี, 36 เดือน Onsite Service"
-                          className="input-base text-xs py-1.5"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-medium text-slate-600 mb-1">วันหมดอายุประกัน (Expiry Date)</label>
-                        <input
-                          type="date"
-                          value={formData.warranty_expire_date}
-                          onChange={(e) => setFormData(prev => ({ ...prev, warranty_expire_date: e.target.value }))}
-                          className="input-base text-xs py-1.5 bg-white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Section 6: หมายเหตุเพิ่มเติม */}
