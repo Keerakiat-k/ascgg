@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import InputField from '../ui/InputField';
@@ -8,10 +8,20 @@ import { getApiBase } from '../../config/api';
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
   const navigate = useNavigate();
+
+  // ดึงข้อมูลอีเมล/ชื่อผู้ใช้ที่เคยจดจำไว้มาใส่ในฟอร์มอัตโนมัติ
+  useEffect(() => {
+    const savedLogin = localStorage.getItem('ascg_remembered_email');
+    if (savedLogin) {
+      setEmail(savedLogin);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,15 +36,22 @@ export default function LoginForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        // ส่งข้อมูล email และ password ไปในรูปแบบ JSON
         body: JSON.stringify({ email, password }),
       });
 
-      // แปลงข้อมูลที่ตอบกลับมาเป็น JSON
       const data = await response.json();
 
       if (response.ok && data.status === 'success') {
-        // หากสำเร็จ เก็บ Token ลง localStorage
+        // หากเลือกจดจำการเข้าสู่ระบบ ให้บันทึกอีเมลไว้
+        if (rememberMe) {
+          localStorage.setItem('ascg_remembered_email', email);
+          localStorage.setItem('ascg_remember_me', 'true');
+        } else {
+          localStorage.removeItem('ascg_remembered_email');
+          localStorage.removeItem('ascg_remember_me');
+        }
+
+        // เก็บ Token ลง localStorage
         localStorage.setItem('auth_token', data.token);
         // เก็บข้อมูล User เบื้องต้นไว้ใช้งานในระบบ
         localStorage.setItem('user_info', JSON.stringify(data.user));
@@ -56,9 +73,9 @@ export default function LoginForm() {
   };
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
+    <form className="space-y-5" onSubmit={handleSubmit}>
       {error && (
-        <div className="bg-red-50 text-red-700 p-4 rounded-lg flex items-center gap-3 text-sm border border-red-200 animate-in fade-in slide-in-from-top-2">
+        <div className="bg-red-50 text-red-700 p-4 rounded-xl flex items-center gap-3 text-sm border border-red-200 animate-in fade-in slide-in-from-top-2">
           <AlertCircle size={20} className="text-red-500 shrink-0" />
           <p>{error}</p>
         </div>
@@ -86,21 +103,21 @@ export default function LoginForm() {
         disabled={isLoading}
       />
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
+      {/* Remember Me Checkbox (นำลืมรหัสผ่านออกแล้ว) */}
+      <div className="flex items-center justify-between pt-1">
+        <label htmlFor="remember-me" className="flex items-center gap-2.5 cursor-pointer select-none group">
           <input
             id="remember-me"
             type="checkbox"
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="w-4 h-4 text-orange-500 accent-amber-500 focus:ring-amber-400 border-slate-300 rounded cursor-pointer transition-all"
             disabled={isLoading}
           />
-          <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-            จดจำการเข้าสู่ระบบ
-          </label>
-        </div>
-        <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-          ลืมรหัสผ่าน?
-        </a>
+          <span className="text-xs sm:text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">
+            จดจำการเข้าสู่ระบบบนอุปกรณ์นี้
+          </span>
+        </label>
       </div>
 
       <Button type="submit" isLoading={isLoading}>
