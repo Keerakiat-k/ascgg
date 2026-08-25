@@ -240,13 +240,14 @@ export default function AddEmployeePage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         
-        {/* SECTION 1: Company & Account Setup */}
+        {/* SECTION 1: Company Affiliation, Position & System Roles (Merged Card 1 & 3) */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
           <div className="flex items-center gap-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">
             <Building size={18} className="text-[#f89919]" />
-            <span>1. ข้อมูลบริษัทสังกัด และรหัสผู้ใช้งาน</span>
+            <span>1. ข้อมูลบริษัทสังกัด ตำแหน่ง และสิทธิ์การใช้งานระบบ</span>
           </div>
 
+          {/* Row 1: Company, Code, Start Date */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">บริษัทสังกัด <span className="text-red-500">*</span></label>
@@ -285,12 +286,72 @@ export default function AddEmployeePage() {
               />
             </div>
           </div>
+
+          {/* Row 2: Department & Position */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <SearchableSelectField
+              label="แผนกสังกัด"
+              options={departments.map(d => ({ value: d, label: d }))}
+              value={formData.departmentName}
+              onChange={(val) => setFormData(prev => ({ ...prev, departmentName: val }))}
+              placeholder="เลือกหรือพิมพ์ชื่อแผนก..."
+              allowCustom
+            />
+
+            <SearchableSelectField
+              label="ตำแหน่งงาน"
+              options={positions.map(p => ({ value: p, label: p }))}
+              value={formData.position}
+              onChange={(val) => setFormData(prev => ({ ...prev, position: val }))}
+              placeholder="เลือกหรือพิมพ์ชื่อตำแหน่ง..."
+              allowCustom
+            />
+          </div>
+
+          {/* Row 3: Email, System Role, Account Status */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+            <InputField
+              label="อีเมลองค์กร (Company Email)"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="username@domain.com"
+              icon={Mail}
+            />
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">สิทธิ์ระบบ (System Role)</label>
+              <select
+                name="roleId"
+                value={formData.roleId}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none text-sm bg-white font-semibold text-slate-800"
+              >
+                {roles.map(r => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">สถานะบัญชี</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none text-sm bg-white font-bold text-emerald-700"
+              >
+                <option value="Active">เปิดใช้งาน (Active)</option>
+                <option value="Resigned">ปิดใช้งาน (Resigned)</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* SECTION 2: User Profile & Contact Info */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
           <div className="flex items-center gap-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">
-            <User size={18} className="text-indigo-600" />
+            <User size={18} className="text-[#f89919]" />
             <span>2. ข้อมูลผู้ใช้งาน และช่องทางติดต่อ</span>
           </div>
 
@@ -382,72 +443,6 @@ export default function AddEmployeePage() {
               placeholder="08x-xxx-xxxx / Ext."
               icon={Phone}
             />
-          </div>
-        </div>
-
-        {/* SECTION 3: Department, Position, Email & System Role */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">
-            <Briefcase size={18} className="text-emerald-600" />
-            <span>3. ตำแหน่ง แผนก และสิทธิ์การใช้งานระบบ</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <SearchableSelectField
-              label="แผนกสังกัด"
-              options={departments.map(d => ({ value: d, label: d }))}
-              value={formData.departmentName}
-              onChange={(val) => setFormData(prev => ({ ...prev, departmentName: val }))}
-              placeholder="เลือกหรือพิมพ์ชื่อแผนก..."
-              allowCustom
-            />
-
-            <SearchableSelectField
-              label="ตำแหน่งงาน"
-              options={positions.map(p => ({ value: p, label: p }))}
-              value={formData.position}
-              onChange={(val) => setFormData(prev => ({ ...prev, position: val }))}
-              placeholder="เลือกหรือพิมพ์ชื่อตำแหน่ง..."
-              allowCustom
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <InputField
-              label="อีเมลองค์กร (Company Email)"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="username@domain.com"
-              icon={Mail}
-            />
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">สิทธิ์ระบบ (System Role)</label>
-              <select
-                name="roleId"
-                value={formData.roleId}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none text-sm bg-white font-semibold text-slate-800"
-              >
-                {roles.map(r => (
-                  <option key={r.value} value={r.value}>{r.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">สถานะบัญชี</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none text-sm bg-white font-bold text-emerald-700"
-              >
-                <option value="Active">เปิดใช้งาน (Active)</option>
-                <option value="Resigned">ปิดใช้งาน (Resigned)</option>
-              </select>
-            </div>
           </div>
         </div>
 
