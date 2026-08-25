@@ -374,20 +374,29 @@ export default function AnnouncementPage() {
               </div>
 
               {/* Right Media Column */}
-              <div className="lg:col-span-5 relative min-h-[220px] lg:min-h-[320px] bg-slate-900 overflow-hidden">
+              <div className="lg:col-span-5 relative min-h-[240px] lg:min-h-[340px] bg-slate-950 flex items-center justify-center p-3 overflow-hidden">
                 {latestNewsItem.cover_image ? (
-                  <img
-                    src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${latestNewsItem.cover_image}`}
-                    alt={latestNewsItem.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                  />
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    {/* Blurred ambient background */}
+                    <img
+                      src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${latestNewsItem.cover_image}`}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover blur-xl opacity-30 scale-110"
+                    />
+                    {/* Sharp full-fit image */}
+                    <img
+                      src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${latestNewsItem.cover_image}`}
+                      alt={latestNewsItem.title}
+                      className="relative z-10 max-h-[300px] w-auto max-w-full object-contain rounded-xl shadow-lg group-hover:scale-[1.02] transition-transform duration-500"
+                    />
+                  </div>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-gradient-to-br from-slate-900 to-amber-950/60 text-white/40">
                     <Megaphone size={56} className="mb-3 text-amber-500/40" />
                     <span className="text-xs font-semibold text-white/50">ASCG Group Announcement</span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
               </div>
 
             </div>
@@ -469,14 +478,24 @@ export default function AnnouncementPage() {
                     onClick={() => setSelectedAnnouncement(item)}
                     className="group bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-amber-300 hover:-translate-y-1 transition-all duration-200 flex flex-col overflow-hidden cursor-pointer"
                   >
-                    {/* Card Cover Media */}
-                    <div className="aspect-video relative overflow-hidden bg-slate-100">
+                    {/* Card Cover Media with Full Fit */}
+                    <div className="aspect-[16/10] relative overflow-hidden bg-slate-950 flex items-center justify-center p-2">
                       {item.cover_image ? (
-                        <img
-                          src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${item.cover_image}`}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
+                        <div className="relative w-full h-full flex items-center justify-center">
+                          {/* Ambient background blur */}
+                          <img
+                            src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${item.cover_image}`}
+                            alt=""
+                            aria-hidden="true"
+                            className="absolute inset-0 w-full h-full object-cover blur-lg opacity-25 scale-110"
+                          />
+                          {/* Full image display */}
+                          <img
+                            src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${item.cover_image}`}
+                            alt={item.title}
+                            className="relative z-10 max-h-full max-w-full object-contain rounded-lg group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-100 to-amber-50/40 text-slate-300">
                           {isPolicyItem ? (
@@ -488,7 +507,7 @@ export default function AnnouncementPage() {
                       )}
 
                       {/* Category Badge Floating */}
-                      <div className="absolute top-3 left-3">
+                      <div className="absolute top-3 left-3 z-20">
                         <span 
                           style={{ backgroundColor: badge.bg, color: badge.text, borderColor: badge.border }}
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border backdrop-blur-md shadow-xs"
@@ -501,7 +520,7 @@ export default function AnnouncementPage() {
                       {/* Share button quick action */}
                       <button
                         onClick={(e) => handleShare(e, item)}
-                        className="absolute top-3 right-3 p-1.5 rounded-full bg-white/90 backdrop-blur-md text-slate-600 hover:text-amber-600 hover:bg-white shadow-xs transition"
+                        className="absolute top-3 right-3 z-20 p-1.5 rounded-full bg-white/90 backdrop-blur-md text-slate-600 hover:text-amber-600 hover:bg-white shadow-xs transition"
                         title="แชร์ลิงก์"
                       >
                         <Share2 size={13} />
@@ -710,56 +729,61 @@ export default function AnnouncementPage() {
         </div>
       </footer>
 
-      {/* ========== 7. RICH READER MODAL ========== */}
+      {/* ========== 7. RICH READER MODAL (FULL UNCROPPED IMAGE) ========== */}
       {selectedAnnouncement && (() => {
         const badge = getBadgeStyle(selectedAnnouncement.type);
         const isPolicyModal = selectedAnnouncement.type === 'นโยบายองค์กร';
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
             
             {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity"
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
               onClick={() => setSelectedAnnouncement(null)}
             />
 
             {/* Modal Dialog Card */}
-            <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] z-10 animate-scale-in">
+            <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] z-10 animate-scale-in">
               
-              {/* Modal Header Media */}
-              <div className="relative flex-shrink-0">
-                {selectedAnnouncement.cover_image ? (
-                  <div className="w-full h-56 sm:h-64 relative bg-slate-900">
-                    <img
-                      src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${selectedAnnouncement.cover_image}`}
-                      alt={selectedAnnouncement.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-black/20 to-transparent" />
-                  </div>
-                ) : (
-                  <div className={`w-full h-28 flex items-center justify-center ${
-                    isPolicyModal
-                      ? 'bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900'
-                      : 'bg-gradient-to-r from-amber-900 via-orange-900 to-slate-900'
-                  }`}>
-                    {isPolicyModal ? (
-                      <ShieldCheck size={48} className="text-blue-400/40" />
-                    ) : (
-                      <Megaphone size={44} className="text-amber-400/40" />
-                    )}
-                  </div>
-                )}
+              {/* Close Button Top-Right */}
+              <button
+                onClick={() => setSelectedAnnouncement(null)}
+                className="absolute top-3.5 right-3.5 z-30 p-2 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white shadow-lg backdrop-blur-md transition-all active:scale-95"
+                title="ปิดหน้าต่าง (Esc)"
+              >
+                <X size={18} />
+              </button>
 
-                {/* Close Button */}
-                <button
-                  onClick={() => setSelectedAnnouncement(null)}
-                  className="absolute top-4 right-4 p-2 rounded-full bg-white/90 backdrop-blur-md text-slate-700 hover:text-black hover:bg-white shadow-md transition-all active:scale-95"
-                  title="ปิดหน้าต่าง (Esc)"
-                >
-                  <X size={18} />
-                </button>
-              </div>
+              {/* Modal Full Media View (No Cropping) */}
+              {selectedAnnouncement.cover_image ? (
+                <div className="relative w-full bg-slate-950 flex items-center justify-center p-3 sm:p-5 max-h-[50vh] sm:max-h-[55vh] overflow-hidden flex-shrink-0">
+                  {/* Subtle ambient backdrop */}
+                  <img
+                    src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${selectedAnnouncement.cover_image}`}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-35 scale-125"
+                  />
+                  {/* Full sharp uncropped image */}
+                  <img
+                    src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${selectedAnnouncement.cover_image}`}
+                    alt={selectedAnnouncement.title}
+                    className="relative z-10 max-h-[46vh] sm:max-h-[50vh] w-auto max-w-full object-contain rounded-xl shadow-2xl ring-1 ring-white/10"
+                  />
+                </div>
+              ) : (
+                <div className={`w-full h-24 flex items-center justify-center flex-shrink-0 ${
+                  isPolicyModal
+                    ? 'bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900'
+                    : 'bg-gradient-to-r from-amber-900 via-orange-900 to-slate-900'
+                }`}>
+                  {isPolicyModal ? (
+                    <ShieldCheck size={44} className="text-blue-400/40" />
+                  ) : (
+                    <Megaphone size={40} className="text-amber-400/40" />
+                  )}
+                </div>
+              )}
 
               {/* Modal Scrollable Body */}
               <div className="p-6 sm:p-8 overflow-y-auto flex-1 custom-scrollbar">
@@ -785,12 +809,12 @@ export default function AnnouncementPage() {
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-amber-600 transition"
                   >
                     <Share2 size={13} />
-                    <span>แชร์</span>
+                    <span>แชร์ลิงก์</span>
                   </button>
                 </div>
 
                 {/* Main Title */}
-                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug mb-5">
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug mb-4">
                   {selectedAnnouncement.title}
                 </h3>
 
