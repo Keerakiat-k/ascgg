@@ -98,23 +98,6 @@ export default function AnnouncementPage() {
     setSearchTerm('');
   };
 
-  const handleShare = (e, item) => {
-    e.stopPropagation();
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: 'คัดลอกลิงก์เรียบร้อยแล้ว',
-        showConfirmButton: false,
-        timer: 2000,
-        background: '#0f172a',
-        color: '#ffffff'
-      });
-    }
-  };
-
   // Filter datasets
   const newsAnnouncements = announcements.filter(item => item.type !== 'นโยบายองค์กร');
   const policyAnnouncements = announcements.filter(item => item.type === 'นโยบายองค์กร');
@@ -373,24 +356,14 @@ export default function AnnouncementPage() {
 
               </div>
 
-              {/* Right Media Column */}
-              <div className="lg:col-span-5 relative min-h-[240px] lg:min-h-[340px] bg-slate-950 flex items-center justify-center p-3 overflow-hidden">
+              {/* Right Media Column - Full Bleed Image */}
+              <div className="lg:col-span-5 relative min-h-[280px] sm:min-h-[340px] lg:min-h-[400px] overflow-hidden bg-slate-100">
                 {latestNewsItem.cover_image ? (
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    {/* Blurred ambient background */}
-                    <img
-                      src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${latestNewsItem.cover_image}`}
-                      alt=""
-                      aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover blur-xl opacity-30 scale-110"
-                    />
-                    {/* Sharp full-fit image */}
-                    <img
-                      src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${latestNewsItem.cover_image}`}
-                      alt={latestNewsItem.title}
-                      className="relative z-10 max-h-[300px] w-auto max-w-full object-contain rounded-xl shadow-lg group-hover:scale-[1.02] transition-transform duration-500"
-                    />
-                  </div>
+                  <img
+                    src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${latestNewsItem.cover_image}`}
+                    alt={latestNewsItem.title}
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                  />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-gradient-to-br from-slate-900 to-amber-950/60 text-white/40">
                     <Megaphone size={56} className="mb-3 text-amber-500/40" />
@@ -479,23 +452,13 @@ export default function AnnouncementPage() {
                     className="group bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-amber-300 hover:-translate-y-1 transition-all duration-200 flex flex-col overflow-hidden cursor-pointer"
                   >
                     {/* Card Cover Media with Full Fit */}
-                    <div className="aspect-[16/10] relative overflow-hidden bg-slate-950 flex items-center justify-center p-2">
+                    <div className="aspect-[16/10] relative overflow-hidden bg-slate-100">
                       {item.cover_image ? (
-                        <div className="relative w-full h-full flex items-center justify-center">
-                          {/* Ambient background blur */}
-                          <img
-                            src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${item.cover_image}`}
-                            alt=""
-                            aria-hidden="true"
-                            className="absolute inset-0 w-full h-full object-cover blur-lg opacity-25 scale-110"
-                          />
-                          {/* Full image display */}
-                          <img
-                            src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${item.cover_image}`}
-                            alt={item.title}
-                            className="relative z-10 max-h-full max-w-full object-contain rounded-lg group-hover:scale-105 transition-transform duration-500"
-                          />
-                        </div>
+                        <img
+                          src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${item.cover_image}`}
+                          alt={item.title}
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-100 to-amber-50/40 text-slate-300">
                           {isPolicyItem ? (
@@ -516,15 +479,6 @@ export default function AnnouncementPage() {
                           {item.type}
                         </span>
                       </div>
-
-                      {/* Share button quick action */}
-                      <button
-                        onClick={(e) => handleShare(e, item)}
-                        className="absolute top-3 right-3 z-20 p-1.5 rounded-full bg-white/90 backdrop-blur-md text-slate-600 hover:text-amber-600 hover:bg-white shadow-xs transition"
-                        title="แชร์ลิงก์"
-                      >
-                        <Share2 size={13} />
-                      </button>
                     </div>
 
                     {/* Card Body */}
@@ -778,15 +732,6 @@ export default function AnnouncementPage() {
                       <span className="hidden sm:inline">ดูรูปขนาดเต็ม</span>
                     </a>
                   )}
-
-                  <button
-                    onClick={(e) => handleShare(e, selectedAnnouncement)}
-                    className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition flex items-center gap-1"
-                    title="คัดลอกลิงก์"
-                  >
-                    <Share2 size={14} />
-                    <span className="hidden sm:inline">แชร์</span>
-                  </button>
 
                   <button
                     onClick={() => setSelectedAnnouncement(null)}
