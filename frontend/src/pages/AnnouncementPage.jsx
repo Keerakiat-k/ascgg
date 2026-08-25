@@ -91,6 +91,12 @@ export default function AnnouncementPage() {
   // Featured item only for News Mode when looking at 'ทั้งหมด'
   const latestNewsItem = newsAnnouncements[0];
 
+  const handleSwitchMode = (mode) => {
+    setViewMode(mode);
+    setFilter('ทั้งหมด');
+    setSearchTerm('');
+  };
+
   const formatDate = (dateStr) =>
     new Date(dateStr).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -306,7 +312,7 @@ export default function AnnouncementPage() {
 
             {/* Side cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {featuredItems.length > 0 ? featuredItems.map((item) => {
+              {featuredItems.map((item) => {
                 const badge = getBadgeStyle(item.type);
                 return (
                   <div
@@ -345,11 +351,7 @@ export default function AnnouncementPage() {
                     </div>
                   </div>
                 );
-              }) : (
-                <div style={{ flex: 1, borderRadius: 16, background: '#f8fafc', border: '1px dashed #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 150 }}>
-                  <p style={{ fontSize: 12, color: '#9ca3af' }}>ยังไม่มีข่าวสารเพิ่มเติม</p>
-                </div>
-              )}
+              })}
             </div>
           </div>
         </section>
