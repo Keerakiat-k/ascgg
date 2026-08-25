@@ -84,6 +84,9 @@ export default function AssetAdminPage() {
     parent_asset_id: '',
     purchase_date: '',
     price: '',
+    po_number: '',
+    warranty_period: '',
+    warranty_expire_date: '',
     notes: '',
     os_name: '',
     os_key: '',
@@ -237,6 +240,9 @@ export default function AssetAdminPage() {
       parent_asset_id: '',
       purchase_date: '',
       price: '',
+      po_number: '',
+      warranty_period: '',
+      warranty_expire_date: '',
       notes: '',
       os_name: 'Windows 10 Pro',
       os_key: '',
@@ -281,6 +287,9 @@ export default function AssetAdminPage() {
       parent_asset_id: asset.parent_asset_id || '',
       purchase_date: asset.purchase_date ? asset.purchase_date.split('T')[0] : '',
       price: asset.price || '',
+      po_number: asset.po_number || '',
+      warranty_period: asset.warranty_period || '',
+      warranty_expire_date: asset.warranty_expire_date ? asset.warranty_expire_date.split('T')[0] : '',
       notes: asset.notes || '',
       os_name: osLic?.software_name || '',
       os_key: osLic?.license_key || '',
@@ -626,6 +635,11 @@ export default function AssetAdminPage() {
       { header: 'Storage', key: 'storage', width: 16 },
       { header: 'สถานะ', key: 'status', width: 14 },
       { header: 'ผู้ถือครอง', key: 'assigned_to', width: 24 },
+      { header: 'เลขที่ PO', key: 'po_number', width: 18 },
+      { header: 'วันที่จัดซื้อ', key: 'purchase_date', width: 15 },
+      { header: 'ราคา (บาท)', key: 'price', width: 15 },
+      { header: 'ระยะเวลารับประกัน', key: 'warranty_period', width: 20 },
+      { header: 'วันหมดอายุประกัน', key: 'warranty_expire_date', width: 18 },
       { header: 'หมายเหตุ', key: 'notes', width: 30 },
     ];
 
@@ -653,6 +667,11 @@ export default function AssetAdminPage() {
         storage: a.storage || '',
         status: a.status || '',
         assigned_to: a.assigned_employee_name || 'คลังส่วนกลาง',
+        po_number: a.po_number || '',
+        purchase_date: a.purchase_date ? a.purchase_date.split('T')[0] : '',
+        price: a.price ? Number(a.price).toLocaleString() : '',
+        warranty_period: a.warranty_period || '',
+        warranty_expire_date: a.warranty_expire_date ? a.warranty_expire_date.split('T')[0] : '',
         notes: a.notes || ''
       });
     });
@@ -1783,7 +1802,66 @@ export default function AssetAdminPage() {
 
               </div>
 
-              {/* Section 5: หมายเหตุเพิ่มเติม */}
+              {/* Section 5: ข้อมูลการจัดซื้อ เลขที่ PO และการรับประกัน */}
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3.5">
+                <div className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign size={14} className="text-amber-600" />
+                    <span>5. ข้อมูลการจัดซื้อ เลขที่ PO และระยะเวลารับประกัน (PO & Warranty)</span>
+                  </div>
+                  <span className="text-[10.5px] text-slate-400 font-normal">บันทึกเลขที่ใบสั่งซื้อ และวันหมดอายุประกัน</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {/* PO Number */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">เลขที่ใบสั่งซื้อ (PO Number)</label>
+                    <input
+                      type="text"
+                      value={formData.po_number}
+                      onChange={(e) => setFormData(prev => ({ ...prev, po_number: e.target.value }))}
+                      placeholder="เช่น PO67-0012, PO-AIC-2024"
+                      className="input-base text-xs py-2 font-mono font-semibold"
+                    />
+                  </div>
+
+                  {/* Purchase Date */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">วันที่จัดซื้อ (Purchase Date)</label>
+                    <input
+                      type="date"
+                      value={formData.purchase_date}
+                      onChange={(e) => setFormData(prev => ({ ...prev, purchase_date: e.target.value }))}
+                      className="input-base text-xs py-2 bg-white"
+                    />
+                  </div>
+
+                  {/* Warranty Period */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">ระยะเวลารับประกัน (Warranty Period)</label>
+                    <input
+                      type="text"
+                      value={formData.warranty_period}
+                      onChange={(e) => setFormData(prev => ({ ...prev, warranty_period: e.target.value }))}
+                      placeholder="เช่น 1 ปี, 3 ปี, 36 เดือน Onsite"
+                      className="input-base text-xs py-2"
+                    />
+                  </div>
+
+                  {/* Warranty Expire Date */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">วันหมดอายุประกัน (Expiry Date)</label>
+                    <input
+                      type="date"
+                      value={formData.warranty_expire_date}
+                      onChange={(e) => setFormData(prev => ({ ...prev, warranty_expire_date: e.target.value }))}
+                      className="input-base text-xs py-2 bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 6: หมายเหตุเพิ่มเติม */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">ประวัติการอัปเกรด / หมายเหตุเพิ่มเติม</label>
                 <textarea
@@ -2084,6 +2162,41 @@ export default function AssetAdminPage() {
                       </strong>
                     </div>
                   </div>
+
+                  {/* Purchase & Warranty Information Card */}
+                  {(activeAsset.po_number || activeAsset.purchase_date || activeAsset.warranty_period || activeAsset.warranty_expire_date) && (
+                    <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-200/80 text-xs">
+                      <div className="font-bold text-amber-900 flex items-center gap-1.5 mb-2.5">
+                        <DollarSign size={14} className="text-amber-600" />
+                        <span>ข้อมูลการจัดซื้อและระยะเวลารับประกัน (PO & Warranty Info):</span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-3 rounded-lg border border-amber-100">
+                        <div>
+                          <span className="text-slate-400 block text-[10.5px]">เลขที่ใบสั่งซื้อ (PO)</span>
+                          <strong className="font-mono text-slate-800">{activeAsset.po_number || '-'}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10.5px]">วันที่จัดซื้อ</span>
+                          <strong className="text-slate-800">{activeAsset.purchase_date ? new Date(activeAsset.purchase_date).toLocaleDateString('th-TH') : '-'}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10.5px]">ระยะเวลารับประกัน</span>
+                          <strong className="text-slate-800">{activeAsset.warranty_period || '-'}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10.5px]">วันหมดอายุประกัน</span>
+                          {activeAsset.warranty_expire_date ? (
+                            <strong className={`font-semibold ${new Date(activeAsset.warranty_expire_date) < new Date() ? 'text-red-600' : 'text-emerald-600'}`}>
+                              {new Date(activeAsset.warranty_expire_date).toLocaleDateString('th-TH')}
+                              {new Date(activeAsset.warranty_expire_date) < new Date() ? ' (หมดประกัน)' : ' (อยู่ในประกัน)'}
+                            </strong>
+                          ) : (
+                            <strong className="text-slate-800">-</strong>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Attached Devices */}
                   {assetDetail && assetDetail.attached_devices && assetDetail.attached_devices.length > 0 && (

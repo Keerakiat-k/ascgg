@@ -260,7 +260,7 @@ exports.createAsset = async (req, res) => {
   const { 
     asset_code, name, category, purchase_date, price, status, assigned_to, notes,
     company, owner_company, department, location, brand, model, serial_number, cpu, ram, storage, display_size,
-    parent_asset_id, licenses
+    parent_asset_id, licenses, po_number, warranty_period, warranty_expire_date
   } = req.body;
   
   try {
@@ -297,9 +297,10 @@ exports.createAsset = async (req, res) => {
     const [result] = await pool.execute(
       `INSERT INTO assets (
         asset_code, name, category, purchase_date, price, status, assigned_to, notes,
-        company, owner_company, department, location, brand, model, serial_number, cpu, ram, storage, display_size, parent_asset_id
+        company, owner_company, department, location, brand, model, serial_number, cpu, ram, storage, display_size, parent_asset_id,
+        po_number, warranty_period, warranty_expire_date
        )
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         asset_code, 
         name, 
@@ -320,7 +321,10 @@ exports.createAsset = async (req, res) => {
         ram || null, 
         storage || null, 
         display_size || null,
-        parent_asset_id || null
+        parent_asset_id || null,
+        po_number || null,
+        warranty_period || null,
+        warranty_expire_date || null
       ]
     );
     
@@ -359,7 +363,7 @@ exports.updateAsset = async (req, res) => {
   const { 
     asset_code, name, category, purchase_date, price, status, assigned_to, notes,
     company, owner_company, department, location, brand, model, serial_number, cpu, ram, storage, display_size,
-    parent_asset_id, licenses
+    parent_asset_id, licenses, po_number, warranty_period, warranty_expire_date
   } = req.body;
 
   try {
@@ -375,12 +379,14 @@ exports.updateAsset = async (req, res) => {
       `UPDATE assets 
        SET asset_code = ?, name = ?, category = ?, purchase_date = ?, price = ?, status = ?, assigned_to = ?, notes = ?,
            company = ?, owner_company = ?, department = ?, location = ?, brand = ?, model = ?, serial_number = ?, 
-           cpu = ?, ram = ?, storage = ?, display_size = ?, parent_asset_id = ?
+           cpu = ?, ram = ?, storage = ?, display_size = ?, parent_asset_id = ?,
+           po_number = ?, warranty_period = ?, warranty_expire_date = ?
        WHERE id = ?`,
       [
         asset_code, name, category || null, purchase_date || null, price || null, status || 'Available', assigned_to || null, notes || null,
         company || null, owner_company || null, department || null, location || null, brand || null, model || null, serial_number || null, 
         cpu || null, ram || null, storage || null, display_size || null, parent_asset_id || null,
+        po_number || null, warranty_period || null, warranty_expire_date || null,
         id
       ]
     );
