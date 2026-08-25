@@ -11,6 +11,8 @@ import SearchableSelectField from '../components/ui/SearchableSelectField';
 import Swal from 'sweetalert2';
 import { generateEmail } from '../utils/companyEmailConfig';
 
+import { getApiBase } from '../config/api';
+
 export default function AddEmployeePage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -55,9 +57,13 @@ export default function AddEmployeePage() {
   const [profileImagePreview, setProfileImagePreview] = useState(null);
 
   useEffect(() => {
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    const baseUrl = getApiBase();
+    const authHeaders = { 'Authorization': `Bearer ${token}` };
+
     const fetchCompanies = async () => {
       try {
-        const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/companies');
+        const response = await fetch(`${baseUrl}/api/companies`, { headers: authHeaders });
         const result = await response.json();
         if (response.ok && result.status === 'success') {
           setCompanyOptions(result.data.map(c => ({ value: c.prefix, label: c.name })));
@@ -69,7 +75,7 @@ export default function AddEmployeePage() {
     
     const fetchDepartments = async () => {
       try {
-        const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/employees/departments');
+        const response = await fetch(`${baseUrl}/api/employees/departments`, { headers: authHeaders });
         const result = await response.json();
         if (response.ok && result.status === 'success') {
           setDepartments(result.data.map(d => d.name));
@@ -81,7 +87,7 @@ export default function AddEmployeePage() {
 
     const fetchPositions = async () => {
       try {
-        const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/settings/positions');
+        const response = await fetch(`${baseUrl}/api/settings/positions`, { headers: authHeaders });
         const result = await response.json();
         if (response.ok && result.status === 'success') {
           setPositions(result.data.map(p => p.title));
@@ -291,18 +297,20 @@ export default function AddEmployeePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
             <SearchableSelectField
               label="แผนกสังกัด"
+              name="departmentName"
               options={departments.map(d => ({ value: d, label: d }))}
               value={formData.departmentName}
-              onChange={(val) => setFormData(prev => ({ ...prev, departmentName: val }))}
+              onChange={handleChange}
               placeholder="เลือกหรือพิมพ์ชื่อแผนก..."
               allowCustom
             />
 
             <SearchableSelectField
               label="ตำแหน่งงาน"
+              name="position"
               options={positions.map(p => ({ value: p, label: p }))}
               value={formData.position}
-              onChange={(val) => setFormData(prev => ({ ...prev, position: val }))}
+              onChange={handleChange}
               placeholder="เลือกหรือพิมพ์ชื่อตำแหน่ง..."
               allowCustom
             />

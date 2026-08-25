@@ -1,21 +1,28 @@
 import React from 'react';
 import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
 
 export default function SearchableSelectField({ 
   label, 
   name, 
   value, 
   onChange, 
-  options, 
+  options = [], 
   icon: Icon, 
   required, 
   disabled,
+  allowCustom = false,
   placeholder = "-- กรุณาเลือก --"
 }) {
-  const selectedOption = options?.find(opt => String(opt.value) === String(value)) || null;
+  // If value exists, find in options or generate display option
+  const selectedOption = options?.find(opt => String(opt.value) === String(value)) 
+    || (value ? { value: String(value), label: String(value) } : null);
 
   const handleChange = (selected) => {
-    onChange({ target: { name, value: selected ? selected.value : '' } });
+    const selectedVal = selected ? selected.value : '';
+    if (typeof onChange === 'function') {
+      onChange({ target: { name, value: selectedVal } });
+    }
   };
 
   const customStyles = {
@@ -46,10 +53,12 @@ export default function SearchableSelectField({
     })
   };
 
+  const SelectComponent = allowCustom ? CreatableSelect : Select;
+
   return (
     <div className="space-y-1.5">
       {label && (
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-xs font-bold text-slate-700">
           {label} {required && <span className="text-rose-500">*</span>}
         </label>
       )}
@@ -59,7 +68,7 @@ export default function SearchableSelectField({
             <Icon size={18} />
           </div>
         )}
-        <Select
+        <SelectComponent
           name={name}
           value={selectedOption}
           onChange={handleChange}
@@ -69,6 +78,7 @@ export default function SearchableSelectField({
           styles={customStyles}
           isClearable
           isSearchable
+          formatCreateLabel={(input) => `+ เพิ่ม "${input}" เป็นรายการใหม่`}
         />
       </div>
     </div>

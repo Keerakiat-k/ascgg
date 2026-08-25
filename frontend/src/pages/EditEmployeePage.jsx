@@ -9,6 +9,7 @@ import InputField from '../components/ui/InputField';
 import SearchableSelectField from '../components/ui/SearchableSelectField';
 import Swal from 'sweetalert2';
 import { generateEmail } from '../utils/companyEmailConfig';
+import { getApiBase } from '../config/api';
 
 export default function EditEmployeePage() {
   const navigate = useNavigate();
@@ -21,21 +22,21 @@ export default function EditEmployeePage() {
   const [departments, setDepartments] = useState([]);
   const [positions, setPositions] = useState([]);
   const [roles, setRoles] = useState([
-    { value: 1, label: 'Admin (ผู้ดูแลระบบ)' },
-    { value: 2, label: 'IT Support (เจ้าหน้าที่ไอที)' },
-    { value: 3, label: 'Employee (พนักงานทั่วไป)' },
-    { value: 4, label: 'HR (ฝ่ายบุคคล)' },
-    { value: 5, label: 'Manager (หัวหน้างาน)' }
+    { value: '1', label: 'Admin (ผู้ดูแลระบบ)' },
+    { value: '2', label: 'IT Support (เจ้าหน้าที่ไอที)' },
+    { value: '3', label: 'Employee (พนักงานทั่วไป)' },
+    { value: '4', label: 'HR (ฝ่ายบุคคล)' },
+    { value: '5', label: 'Manager (หัวหน้างาน)' }
   ]);
 
   const [formData, setFormData] = useState({
-    id: id,
+    id: '',
     companyPrefix: '',
     employeeCode: '',
     email: '',
     position: '',
     departmentName: '',
-    roleId: 3,
+    roleId: '3',
     startDate: '',
     status: 'Active',
 
@@ -53,10 +54,14 @@ export default function EditEmployeePage() {
 
   // 1. ดึงข้อมูลผู้ใช้งานที่ต้องการแก้ไข
   useEffect(() => {
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    const baseUrl = getApiBase();
+    const authHeaders = { 'Authorization': `Bearer ${token}` };
+
     const fetchUserData = async () => {
       setIsFetching(true);
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/employees/${id}`);
+        const response = await fetch(`${baseUrl}/api/employees/${id}`, { headers: authHeaders });
         const result = await response.json();
 
         if (response.ok && result.status === 'success') {
@@ -68,7 +73,7 @@ export default function EditEmployeePage() {
             email: emp.email || '',
             position: emp.position || '',
             departmentName: emp.department_name || '',
-            roleId: emp.role_id || 3,
+            roleId: String(emp.role_id || 3),
             startDate: emp.start_date ? emp.start_date.split('T')[0] : '',
             status: emp.status || 'Active',
 
@@ -82,7 +87,7 @@ export default function EditEmployeePage() {
           });
 
           if (emp.profile_image) {
-            setProfileImagePreview(`${import.meta.env.VITE_API_BASE_URL}${emp.profile_image}`);
+            setProfileImagePreview(`${baseUrl}${emp.profile_image}`);
           }
         } else {
           Swal.fire('ผิดพลาด', 'ไม่พบข้อมูลผู้ใช้งาน', 'error');
@@ -98,19 +103,19 @@ export default function EditEmployeePage() {
 
     const fetchMasterData = async () => {
       try {
-        const compRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/companies');
+        const compRes = await fetch(`${baseUrl}/api/companies`, { headers: authHeaders });
         const compData = await compRes.json();
         if (compRes.ok && compData.status === 'success') {
           setCompanyOptions(compData.data.map(c => ({ value: c.prefix, label: c.name })));
         }
 
-        const deptRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/employees/departments');
+        const deptRes = await fetch(`${baseUrl}/api/employees/departments`, { headers: authHeaders });
         const deptData = await deptRes.json();
         if (deptRes.ok && deptData.status === 'success') {
           setDepartments(deptData.data.map(d => d.name));
         }
 
-        const posRes = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/settings/positions');
+        const posRes = await fetch(`${baseUrl}/api/settings/positions`, { headers: authHeaders });
         const posData = await posRes.json();
         if (posRes.ok && posData.status === 'success') {
           setPositions(posData.data.map(p => p.title));
@@ -282,18 +287,20 @@ export default function EditEmployeePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
             <SearchableSelectField
               label="แผนกสังกัด"
+              name="departmentName"
               options={departments.map(d => ({ value: d, label: d }))}
               value={formData.departmentName}
-              onChange={(val) => setFormData(prev => ({ ...prev, departmentName: val }))}
+              onChange={handleChange}
               placeholder="เลือกหรือพิมพ์ชื่อแผนก..."
               allowCustom
             />
 
             <SearchableSelectField
               label="ตำแหน่งงาน"
+              name="position"
               options={positions.map(p => ({ value: p, label: p }))}
               value={formData.position}
-              onChange={(val) => setFormData(prev => ({ ...prev, position: val }))}
+              onChange={handleChange}
               placeholder="เลือกหรือพิมพ์ชื่อตำแหน่ง..."
               allowCustom
             />
