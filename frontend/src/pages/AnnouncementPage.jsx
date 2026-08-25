@@ -1,24 +1,56 @@
 import { useState, useEffect } from 'react';
-import { Megaphone, Calendar, Info, Clock, LogIn, ArrowRight, Headset, X, Search, Bell, ShieldCheck, ChevronLeft, ChevronRight, Newspaper, LayoutGrid } from 'lucide-react';
+import {
+  Megaphone, Calendar, Info, Clock, LogIn, ArrowRight, Headset, X, Search, Bell,
+  ShieldCheck, ChevronLeft, ChevronRight, Newspaper, LayoutGrid, Sparkles,
+  ExternalLink, Building2, Layers, CheckCircle2, Bookmark, Share2, HelpCircle,
+  FileText, ArrowUpRight
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+
+// Brand Assets
 import logo from '../assets/logo.png';
 import heroBg from '../assets/hero_bg.jpg';
+import aicLogo from '../assets/AIC.png';
+import aiaLogo from '../assets/AIA.png';
+import aepLogo from '../assets/AEP.png';
+import agcLogo from '../assets/AGC.png';
+import cstLogo from '../assets/CST.png';
+import qpmLogo from '../assets/QPM.png';
+import sqtLogo from '../assets/SQT.jpg';
+
+const COMPANIES = [
+  { prefix: 'AIC', name: 'บริษัท เอไอซี โซลูชั่นส์ จำกัด', logo: aicLogo, desc: 'ผู้นำด้านเทคโนโลยีและโซลูชั่นวิศวกรรม' },
+  { prefix: 'AIA', name: 'บริษัท เอไอเอ เทคโนโลยี จำกัด', logo: aiaLogo, desc: 'พัฒนานวัตกรรมดิจิทัลและระบบอัจฉริยะ' },
+  { prefix: 'AEP', name: 'บริษัท เอเอสซีจี เอ็นจิเนียริ่ง โปรดักส์ จำกัด', logo: aepLogo, desc: 'บริการและอุปกรณ์วิศวกรรมครบวงจร' },
+  { prefix: 'AGC', name: 'บริษัท เอจีซี อินโนเวชั่น จำกัด', logo: agcLogo, desc: 'การบริหารจัดการและเทคโนโลยีขั้นสูง' },
+  { prefix: 'CST', name: 'บริษัท ซีเอสที เอ็นจิเนียริ่ง จำกัด', logo: cstLogo, desc: 'งานระบบและวิศวกรรมโครงสร้าง' },
+  { prefix: 'QPM', name: 'บริษัท คิวพีเอ็ม เมเนจเม้นท์ จำกัด', logo: qpmLogo, desc: 'การบริหารคุณภาพและการจัดการโครงการ' },
+  { prefix: 'SQT', name: 'บริษัท เอสคิวที เซอร์วิส จำกัด', logo: sqtLogo, desc: 'บริการเทคนิคและความปลอดภัยองค์กร' },
+];
 
 export default function AnnouncementPage() {
   const navigate = useNavigate();
   const [announcements, setAnnouncements] = useState([]);
   
-  // 🧭 Main Section Mode: 'news' (ข่าวสารและกิจกรรม) | 'policies' (นโยบายองค์กร)
+  // 🧭 View Mode: 'news' (ข่าวสารและกิจกรรม) | 'policies' (นโยบายองค์กร)
   const [viewMode, setViewMode] = useState('news');
-  
-  // Sub-filter within the active mode
   const [filter, setFilter] = useState('ทั้งหมด');
   const [announcementTypes, setAnnouncementTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = 6;
+
+  // Esc key listener for modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setSelectedAnnouncement(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,43 +85,12 @@ export default function AnnouncementPage() {
 
   const getBadgeStyle = (type) => {
     switch (type) {
-      case 'ประกาศสำคัญ': return { bg: '#fff1f2', text: '#be123c', border: '#fecdd3', icon: <Megaphone size={11} /> };
-      case 'กิจกรรม':     return { bg: '#fff7ed', text: '#c2690a', border: '#fed7aa', icon: <Calendar size={11} /> };
-      case 'นโยบายองค์กร': return { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe', icon: <ShieldCheck size={11} /> };
-      default:            return { bg: '#f3f4f6', text: '#374151', border: '#e5e7eb', icon: <Info size={11} /> };
+      case 'ประกาศสำคัญ': return { bg: '#fff1f2', text: '#be123c', border: '#fecdd3', icon: <Megaphone size={11} />, dot: '#ef4444' };
+      case 'กิจกรรม':     return { bg: '#fff7ed', text: '#c2690a', border: '#fed7aa', icon: <Calendar size={11} />, dot: '#f97316' };
+      case 'นโยบายองค์กร': return { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe', icon: <ShieldCheck size={11} />, dot: '#3b82f6' };
+      default:            return { bg: '#f1f5f9', text: '#334155', border: '#e2e8f0', icon: <Info size={11} />, dot: '#64748b' };
     }
   };
-
-  // 1️⃣ แยกชุดข้อมูลข่าวสาร (ไม่เอานโยบายมาปน)
-  const newsAnnouncements = announcements.filter(item => item.type !== 'นโยบายองค์กร');
-  
-  // 2️⃣ แยกชุดข้อมูลนโยบายองค์กร (เฉพาะนโยบายเท่านั้น)
-  const policyAnnouncements = announcements.filter(item => item.type === 'นโยบายองค์กร');
-
-  // Filter Categories for News Mode (Excludes 'นโยบายองค์กร')
-  const newsCategories = ['ทั้งหมด', ...announcementTypes.filter(t => t !== 'นโยบายองค์กร')];
-
-  // Current active data set based on viewMode
-  const activeDataset = viewMode === 'news' ? newsAnnouncements : policyAnnouncements;
-
-  // Filter & Search Logic
-  const filteredData = activeDataset
-    .filter((item) => {
-      if (viewMode === 'policies') return true; // In policy mode, all items are already policies
-      if (filter === 'ทั้งหมด') return true;
-      return item.type === filter;
-    })
-    .filter((item) =>
-      searchTerm === '' ||
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.content.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const currentItems = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  
-  // Featured item only for News Mode when looking at 'ทั้งหมด'
-  const latestNewsItem = newsAnnouncements[0];
 
   const handleSwitchMode = (mode) => {
     setViewMode(mode);
@@ -97,421 +98,442 @@ export default function AnnouncementPage() {
     setSearchTerm('');
   };
 
-  const formatDate = (dateStr) =>
-    new Date(dateStr).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+  const handleShare = (e, item) => {
+    e.stopPropagation();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'คัดลอกลิงก์เรียบร้อยแล้ว',
+        showConfirmButton: false,
+        timer: 2000,
+        background: '#0f172a',
+        color: '#ffffff'
+      });
+    }
+  };
 
-  const isShowingFeatured = viewMode === 'news' && !isLoading && searchTerm === '' && filter === 'ทั้งหมด';
-  const featuredItems = newsAnnouncements.slice(1, 3);
+  // Filter datasets
+  const newsAnnouncements = announcements.filter(item => item.type !== 'นโยบายองค์กร');
+  const policyAnnouncements = announcements.filter(item => item.type === 'นโยบายองค์กร');
+  const newsCategories = ['ทั้งหมด', ...announcementTypes.filter(t => t !== 'นโยบายองค์กร')];
+  const activeDataset = viewMode === 'news' ? newsAnnouncements : policyAnnouncements;
+
+  const filteredData = activeDataset
+    .filter((item) => {
+      if (viewMode === 'policies') return true;
+      if (filter === 'ทั้งหมด') return true;
+      return item.type === filter;
+    })
+    .filter((item) =>
+      searchTerm === '' ||
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.content && item.content.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const currentItems = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const latestNewsItem = newsAnnouncements[0];
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
+  const todayStr = new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <div style={{ minHeight: '100vh', fontFamily: "'Inter', 'Prompt', system-ui, sans-serif", background: '#f0f2f5' }}>
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-amber-500 selection:text-white" style={{ fontFamily: "'Inter', 'Prompt', system-ui, sans-serif" }}>
 
-      {/* ====== NAVBAR ====== */}
-      <nav style={{
-        position: 'sticky', top: 0, zIndex: 50,
-        background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(0,0,0,0.06)',
-        boxShadow: '0 1px 0 rgba(0,0,0,0.04)',
-      }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', height: 60, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => handleSwitchMode('news')}>
-            <img src={logo} alt="ASCG" style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
+      {/* ========== 1. TOP HEADER / NAVBAR ========== */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-xs transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+          
+          {/* Brand Logo & Name */}
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => handleSwitchMode('news')}>
+            <div className="p-1.5 rounded-xl bg-gradient-to-tr from-amber-500/10 to-orange-500/10 border border-amber-200/60 shadow-xs group-hover:border-amber-400 transition">
+              <img src={logo} alt="ASCG Group" className="h-8 w-auto object-contain" />
+            </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>ASCG Group</div>
-              <div style={{ fontSize: 10.5, color: '#9ca3af', fontWeight: 500 }}>HR & IT System</div>
+              <div className="flex items-center gap-1.5 font-bold text-slate-900 tracking-tight text-base leading-none">
+                ASCG Group
+                <span className="text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+                  Portal
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 font-normal mt-0.5 hidden sm:block">
+                ระบบสารสนเทศและพอร์ทัลกลางองค์กร
+              </p>
             </div>
           </div>
 
-          {/* Mode Toggle */}
-          <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: 12, padding: 3, gap: 2 }}>
-            {[
-              { key: 'news', label: 'ข่าวสาร', icon: <Newspaper size={13} /> },
-              { key: 'policies', label: 'นโยบาย', icon: <ShieldCheck size={13} /> },
-            ].map(({ key, label, icon }) => (
-              <button
-                key={key}
-                onClick={() => handleSwitchMode(key)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '6px 14px', borderRadius: 9, fontSize: 13, fontWeight: viewMode === key ? 600 : 500,
-                  background: viewMode === key ? '#ffffff' : 'transparent',
-                  color: viewMode === key ? (key === 'policies' ? '#1d4ed8' : '#ea7c0a') : '#64748b',
-                  border: 'none', cursor: 'pointer',
-                  boxShadow: viewMode === key ? '0 1px 4px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04)' : 'none',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {icon} {label}
-              </button>
-            ))}
+          {/* Center Navigation Mode Switcher */}
+          <div className="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200 shadow-inner">
+            <button
+              onClick={() => handleSwitchMode('news')}
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all ${
+                viewMode === 'news'
+                  ? 'bg-white text-orange-700 shadow-xs ring-1 ring-black/5 font-bold'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+              }`}
+            >
+              <Newspaper size={14} className={viewMode === 'news' ? 'text-amber-500' : 'text-slate-500'} />
+              <span>ข่าวสาร & กิจกรรม</span>
+              {newsAnnouncements.length > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${viewMode === 'news' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'}`}>
+                  {newsAnnouncements.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => handleSwitchMode('policies')}
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all ${
+                viewMode === 'policies'
+                  ? 'bg-white text-blue-700 shadow-xs ring-1 ring-black/5 font-bold'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+              }`}
+            >
+              <ShieldCheck size={14} className={viewMode === 'policies' ? 'text-blue-600' : 'text-slate-500'} />
+              <span>นโยบายองค์กร</span>
+              {policyAnnouncements.length > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${viewMode === 'policies' ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700'}`}>
+                  {policyAnnouncements.length}
+                </span>
+              )}
+            </button>
           </div>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => navigate('/report-it')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '7px 14px', borderRadius: 9, fontSize: 13, fontWeight: 500,
-                border: '1px solid #e5e7eb', background: 'white', color: '#374151',
-                cursor: 'pointer', transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#f89919'; e.currentTarget.style.color = '#c2690a'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#374151'; }}
+              className="hidden md:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:border-amber-400 hover:text-amber-700 hover:shadow-xs transition"
             >
-              <Headset size={14} style={{ color: '#f89919' }} />
-              <span className="hidden sm:inline">แจ้งปัญหา IT</span>
+              <Headset size={14} className="text-amber-500" />
+              <span>แจ้งปัญหา IT</span>
             </button>
+
             <button
               onClick={() => navigate('/login')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '7px 16px', borderRadius: 9, fontSize: 13, fontWeight: 600,
-                background: 'linear-gradient(135deg, #f89919 0%, #e8860a 100%)',
-                color: 'white', border: 'none', cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(248,153,25,0.35)', transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-orange-500/20 active:scale-[0.98] transition-all"
             >
-              <LogIn size={14} />
-              <span className="hidden sm:inline">เข้าสู่ระบบ</span>
+              <LogIn size={15} />
+              <span>เข้าสู่ระบบ</span>
             </button>
           </div>
+
         </div>
-      </nav>
+      </header>
 
-      {/* ====== HERO ====== */}
-      <section style={{ position: 'relative', overflow: 'hidden', padding: '56px 24px 64px' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center 40%' }} />
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: viewMode === 'policies'
-            ? 'linear-gradient(150deg, rgba(7,15,35,0.94) 0%, rgba(17,38,76,0.82) 55%, rgba(30,80,220,0.4) 100%)'
-            : 'linear-gradient(150deg, rgba(8,6,3,0.92) 0%, rgba(30,16,5,0.78) 55%, rgba(240,140,10,0.38) 100%)',
-        }} />
-        <div style={{
-          position: 'absolute', width: 500, height: 500, borderRadius: '50%',
-          background: viewMode === 'policies' ? 'rgba(37,99,235,0.12)' : 'rgba(248,153,25,0.12)',
-          filter: 'blur(90px)', top: -150, right: -80, pointerEvents: 'none',
-        }} />
+      {/* ========== 2. HERO SHOWCASE WITH MODERN AMBIENT ========== */}
+      <section className="relative overflow-hidden bg-slate-900 text-white py-12 sm:py-16">
+        {/* Background photo with gradient overlay */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-25 mix-blend-luminosity scale-105 transform duration-1000 ease-out" 
+          style={{ backgroundImage: `url(${heroBg})` }}
+        />
+        <div className={`absolute inset-0 ${
+          viewMode === 'policies'
+            ? 'bg-gradient-to-br from-slate-950 via-blue-950/80 to-slate-900'
+            : 'bg-gradient-to-br from-slate-950 via-amber-950/40 to-slate-900'
+        }`} />
 
-        <div style={{ position: 'relative', zIndex: 10, maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7,
-            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
-            borderRadius: 9999, padding: '5px 14px', marginBottom: 18,
-            fontSize: 11.5, fontWeight: 600, color: 'rgba(255,255,255,0.8)',
-            backdropFilter: 'blur(10px)', letterSpacing: '0.06em', textTransform: 'uppercase',
-          }}>
-            {viewMode === 'policies'
-              ? <><ShieldCheck size={12} style={{ color: '#60a5fa' }} /> นโยบายและระเบียบปฏิบัติ</>
-              : <><Bell size={12} style={{ color: '#fbbf24' }} /> ข่าวสารและกิจกรรมองค์กร</>
-            }
-          </div>
+        {/* Ambient Glow Orbs */}
+        <div className={`absolute top-0 right-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none ${
+          viewMode === 'policies' ? 'bg-blue-600/20' : 'bg-amber-500/20'
+        }`} />
+        <div className="absolute -bottom-10 left-10 w-72 h-72 rounded-full bg-orange-600/15 blur-2xl pointer-events-none" />
 
-          <h1 style={{
-            fontSize: 'clamp(26px, 5vw, 44px)', fontWeight: 800,
-            color: '#ffffff', letterSpacing: '-0.04em', lineHeight: 1.15,
-            margin: '0 0 12px',
-          }}>
-            {viewMode === 'policies' ? (
-              <>นโยบายและระเบียบ<br /><span style={{ color: '#60a5fa' }}>ของ ASCG Group</span></>
-            ) : (
-              <>ติดตามทุกความเคลื่อนไหว<br />
-                <span style={{ background: 'linear-gradient(90deg, #fbbf24, #f89919)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                  ของ ASCG Group
-                </span>
-              </>
-            )}
-          </h1>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            
+            {/* Top Live Date Eyebrow */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] sm:text-xs font-semibold text-white/90 mb-5 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span>{todayStr}</span>
+              <span className="text-white/30">•</span>
+              <span className="text-amber-300 font-medium">ASCG Group Community</span>
+            </div>
 
-          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.75, maxWidth: 520, margin: '0 auto 26px' }}>
-            {viewMode === 'policies'
-              ? 'คู่มือ กฎระเบียบ และมาตรฐานความปลอดภัยสำหรับบุคลากรทุกคน'
-              : 'ประกาศสำคัญ ข่าวกิจกรรม และความเคลื่อนไหวต่างๆ ภายในองค์กร'}
-          </p>
+            {/* Headline */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight text-white mb-4">
+              {viewMode === 'policies' ? (
+                <>
+                  นโยบายและระเบียบปฏิบัติองค์กร <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-indigo-400">
+                    Corporate Governance & Policy
+                  </span>
+                </>
+              ) : (
+                <>
+                  ศูนย์กลางข่าวสารและความเคลื่อนไหว <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-300 to-amber-400">
+                    กลุ่มบริษัท ASCG Group
+                  </span>
+                </>
+              )}
+            </h1>
 
-          <div style={{ position: 'relative', maxWidth: 440, margin: '0 auto' }}>
-            <Search size={15} style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none' }} />
-            <input
-              type="text"
-              placeholder={viewMode === 'policies' ? 'ค้นหานโยบาย...' : 'ค้นหาข่าวสาร, ประกาศ...'}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%', paddingLeft: 44, paddingRight: 16, paddingTop: 11, paddingBottom: 11,
-                borderRadius: 12, fontSize: 13.5, outline: 'none',
-                background: 'rgba(255,255,255,0.09)', backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.16)', color: '#ffffff',
-                boxSizing: 'border-box', transition: 'all 0.2s',
-              }}
-              onFocus={e => { e.target.style.background = 'rgba(255,255,255,0.14)'; e.target.style.borderColor = viewMode === 'policies' ? 'rgba(96,165,250,0.55)' : 'rgba(251,191,36,0.55)'; }}
-              onBlur={e => { e.target.style.background = 'rgba(255,255,255,0.09)'; e.target.style.borderColor = 'rgba(255,255,255,0.16)'; }}
-            />
+            <p className="text-sm sm:text-base text-slate-300/90 font-normal leading-relaxed max-w-2xl mx-auto mb-8">
+              {viewMode === 'policies'
+                ? 'คู่มือระเบียบข้อบังคับ มาตรฐานการปฏิบัติงาน และความปลอดภัยทางสารสนเทศสำหรับพนักงานในเครือทุกท่าน'
+                : 'เกาะติดทุกประกาศสำคัญ กิจกรรมสานสัมพันธ์ และการเติบโตร่วมกันของพวกเราชาว ASCG'}
+            </p>
+
+            {/* Modern Floating Search Bar */}
+            <div className="relative max-w-xl mx-auto">
+              <div className="relative flex items-center">
+                <Search size={18} className="absolute left-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder={viewMode === 'policies' ? "ค้นหาชื่อนโยบาย, ระเบียบปฏิบัติ, ข้อบังคับ..." : "ค้นหาประกาศ, กิจกรรม, หัวข้อข่าว..."}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-11 pr-10 py-3.5 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/20 text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white/20 shadow-xl transition-all"
+                />
+                {searchTerm && (
+                  <button 
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3.5 p-1 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 transition"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* ====== FEATURED SECTION - ข่าวหลัก + ข่าวรอง ====== */}
-      {isShowingFeatured && latestNewsItem && (
-        <section style={{ maxWidth: 1200, margin: '-28px auto 0', padding: '0 20px', position: 'relative', zIndex: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 16, alignItems: 'stretch' }}>
-
-            {/* Main Featured */}
-            <div
-              onClick={() => setSelectedAnnouncement(latestNewsItem)}
-              style={{
-                borderRadius: 20, overflow: 'hidden', cursor: 'pointer',
-                background: '#111827', position: 'relative', minHeight: 340,
-                boxShadow: '0 16px 48px rgba(0,0,0,0.22)', transition: 'transform 0.25s, box-shadow 0.25s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 24px 60px rgba(0,0,0,0.28)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(0,0,0,0.22)'; }}
-            >
-              {latestNewsItem.cover_image ? (
-                <img
-                  src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${latestNewsItem.cover_image}`}
-                  alt={latestNewsItem.title}
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.48 }}
-                />
-              ) : (
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #1c1917 0%, #292524 100%)' }} />
-              )}
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.08) 100%)' }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '30px 30px 30px' }}>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#f89919', color: 'white', padding: '3px 10px', borderRadius: 999, fontSize: 10.5, fontWeight: 700 }}>
-                    <Bell size={9} /> ล่าสุด
-                  </span>
-                  {(() => {
-                    const s = getBadgeStyle(latestNewsItem.type);
-                    return (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', color: 'rgba(255,255,255,0.88)', border: '1px solid rgba(255,255,255,0.18)', padding: '3px 10px', borderRadius: 999, fontSize: 10.5, fontWeight: 600 }}>
-                        {s.icon} {latestNewsItem.type}
-                      </span>
-                    );
-                  })()}
-                </div>
-                <h2 style={{ fontSize: 'clamp(16px, 2.5vw, 22px)', fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: 10, letterSpacing: '-0.02em' }}>
-                  {latestNewsItem.title}
-                </h2>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.52)', lineHeight: 1.65, marginBottom: 18, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {latestNewsItem.content}
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: 'rgba(255,255,255,0.38)' }}>
-                    <Clock size={11} /> {formatDate(latestNewsItem.created_at)}
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, fontWeight: 600, color: '#fbbf24' }}>
-                    อ่านต่อ <ArrowRight size={13} />
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Side cards */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {featuredItems.map((item) => {
-                const badge = getBadgeStyle(item.type);
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => setSelectedAnnouncement(item)}
-                    style={{
-                      borderRadius: 16, overflow: 'hidden', cursor: 'pointer', flex: 1,
-                      background: 'white', border: '1px solid rgba(0,0,0,0.06)',
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
-                      display: 'flex', flexDirection: 'column', minHeight: 150,
-                      transition: 'transform 0.2s, box-shadow 0.2s',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.11)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.07)'; }}
-                  >
-                    {item.cover_image && (
-                      <div style={{ height: 80, overflow: 'hidden', flexShrink: 0 }}>
-                        <img src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${item.cover_image}`} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </div>
-                    )}
-                    <div style={{ padding: '14px 16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: badge.bg, color: badge.text, border: `1px solid ${badge.border}`, padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600 }}>
-                          {badge.icon} {item.type}
+      {/* ========== 3. SPOTLIGHT HERO (When viewing News with 1+ items) ========== */}
+      {viewMode === 'news' && latestNewsItem && !isLoading && searchTerm === '' && filter === 'ทั้งหมด' && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20 mb-8">
+          <div 
+            onClick={() => setSelectedAnnouncement(latestNewsItem)}
+            className="group relative bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/50 overflow-hidden cursor-pointer hover:border-amber-400 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-stretch">
+              
+              {/* Left Details Column */}
+              <div className="lg:col-span-7 p-6 sm:p-8 md:p-10 flex flex-col justify-between">
+                <div>
+                  
+                  {/* Tags */}
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500 text-white shadow-xs">
+                      <Sparkles size={12} className="animate-spin" style={{ animationDuration: '4s' }} /> ข่าวล่าสุด Spotlight
+                    </span>
+                    {(() => {
+                      const badge = getBadgeStyle(latestNewsItem.type);
+                      return (
+                        <span 
+                          style={{ backgroundColor: badge.bg, color: badge.text, borderColor: badge.border }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border"
+                        >
+                          {badge.icon} {latestNewsItem.type}
                         </span>
-                        <span style={{ fontSize: 10.5, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <Clock size={9} /> {formatDate(item.created_at)}
-                        </span>
-                      </div>
-                      <h3 style={{ fontSize: 13.5, fontWeight: 650, color: '#111827', lineHeight: 1.4, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                        {item.title}
-                      </h3>
-                      <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#f89919' }}>
-                        อ่านต่อ <ArrowRight size={11} />
-                      </div>
-                    </div>
+                      );
+                    })()}
                   </div>
-                );
-              })}
+
+                  {/* Title */}
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 group-hover:text-amber-600 transition-colors leading-snug mb-3">
+                    {latestNewsItem.title}
+                  </h2>
+
+                  {/* Excerpt */}
+                  <p className="text-sm sm:text-base text-slate-600 leading-relaxed line-clamp-3 mb-6 font-normal">
+                    {latestNewsItem.content}
+                  </p>
+
+                </div>
+
+                {/* Footer Metadata & CTA */}
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
+                    <span className="flex items-center gap-1.5">
+                      <Clock size={13} className="text-slate-400" />
+                      {formatDate(latestNewsItem.created_at)}
+                    </span>
+                    <span className="hidden sm:inline text-slate-300">•</span>
+                    <span className="hidden sm:flex items-center gap-1 text-slate-500">
+                      <Building2 size={13} /> ASCG Official
+                    </span>
+                  </div>
+
+                  <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-600 group-hover:text-amber-700 group-hover:translate-x-1 transition-all">
+                    <span>อ่านรายละเอียดฉบับเต็ม</span>
+                    <ArrowRight size={15} />
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Media Column */}
+              <div className="lg:col-span-5 relative min-h-[220px] lg:min-h-[320px] bg-slate-900 overflow-hidden">
+                {latestNewsItem.cover_image ? (
+                  <img
+                    src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${latestNewsItem.cover_image}`}
+                    alt={latestNewsItem.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-gradient-to-br from-slate-900 to-amber-950/60 text-white/40">
+                    <Megaphone size={56} className="mb-3 text-amber-500/40" />
+                    <span className="text-xs font-semibold text-white/50">ASCG Group Announcement</span>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+              </div>
+
             </div>
           </div>
         </section>
       )}
 
-      {/* ====== CONTENT AREA ====== */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 20px 80px' }}>
+      {/* ========== 4. MAIN CONTENT & CARDS GRID ========== */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Category Navigation & Section Title */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-slate-200">
+          
+          {/* Left Title & Status */}
+          <div>
+            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+              {viewMode === 'policies' ? (
+                <>
+                  <ShieldCheck className="text-blue-600" size={22} />
+                  <span>สารบัญนโยบายและระเบียบปฏิบัติ</span>
+                </>
+              ) : (
+                <>
+                  <Layers className="text-amber-500" size={20} />
+                  <span>รายการประกาศ & ข่าวสารทั้งหมด</span>
+                </>
+              )}
+            </h3>
+            <p className="text-xs text-slate-600 font-normal mt-0.5">
+              {viewMode === 'policies'
+                ? 'ค้นหาและเปิดดูเอกสารนโยบายความปลอดภัยและคู่มือการปฏิบัติงาน'
+                : 'ข่าวสารอัปเดตและประกาศทางการจากฝ่ายบริหารและทรัพยากรบุคคล'}
+            </p>
+          </div>
 
-        {/* Filter / Policy Header */}
-        {viewMode === 'news' ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {/* Right Category Filter Pills */}
+          {viewMode === 'news' && (
+            <div className="flex items-center gap-1.5 flex-wrap">
               {newsCategories.map((type) => {
                 const active = filter === type;
                 return (
                   <button
                     key={type}
                     onClick={() => setFilter(type)}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 6,
-                      padding: '7px 18px', borderRadius: 999, fontSize: 13, fontWeight: active ? 600 : 500,
-                      border: `1.5px solid ${active ? '#f89919' : '#e5e7eb'}`,
-                      background: active ? '#f89919' : '#ffffff',
-                      color: active ? '#ffffff' : '#6b7280',
-                      cursor: 'pointer', transition: 'all 0.15s',
-                      boxShadow: active ? '0 3px 12px rgba(248,153,25,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
-                    }}
-                    onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = '#f89919'; e.currentTarget.style.color = '#c2690a'; } }}
-                    onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280'; } }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                      active
+                        ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:border-amber-300 hover:text-amber-700'
+                    }`}
                   >
-                    {type === 'ประกาศสำคัญ' && <Megaphone size={12} style={{ color: active ? 'white' : '#dc2626' }} />}
-                    {type === 'กิจกรรม' && <Calendar size={12} style={{ color: active ? 'white' : '#f89919' }} />}
-                    {type === 'ทั้งหมด' && <LayoutGrid size={12} style={{ color: active ? 'white' : '#6b7280' }} />}
-                    {type}
-                    {active && filteredData.length > 0 && (
-                      <span style={{ marginLeft: 2, background: 'rgba(255,255,255,0.28)', padding: '0 5px', borderRadius: 999, fontSize: 11, fontWeight: 700 }}>
-                        {filteredData.length}
-                      </span>
-                    )}
+                    {type === 'ประกาศสำคัญ' && <Megaphone size={12} />}
+                    {type === 'กิจกรรม' && <Calendar size={12} />}
+                    {type === 'ทั้งหมด' && <LayoutGrid size={12} />}
+                    <span>{type}</span>
                   </button>
                 );
               })}
             </div>
-            <span style={{ fontSize: 12.5, color: '#9ca3af', fontWeight: 500 }}>
-              {filteredData.length > 0 ? `${filteredData.length} รายการ` : ''}
-            </span>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #e5e7eb', paddingBottom: 16, marginBottom: 28 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg, #1e3a8a, #2563eb)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}>
-                <ShieldCheck size={20} style={{ color: 'white' }} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>ทะเบียนนโยบายและระเบียบปฏิบัติองค์กร</h3>
-                <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>เอกสารมาตรฐานสำหรับบุคลากรในเครือ ASCG Group</p>
-              </div>
-            </div>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#2563eb', background: '#eff6ff', padding: '4px 12px', borderRadius: 999, border: '1px solid #bfdbfe' }}>
-              {filteredData.length} นโยบาย
-            </span>
-          </div>
-        )}
+          )}
 
-        {/* Cards */}
+        </div>
+
+        {/* Loading Spinner */}
         {isLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: '50%', border: '3px solid #e5e7eb', borderTopColor: viewMode === 'policies' ? '#2563eb' : '#f89919', animation: 'spin 0.8s linear infinite' }} />
-            <p style={{ fontSize: 13, color: '#9ca3af', fontWeight: 500 }}>กำลังโหลดข้อมูล...</p>
+          <div className="py-20 flex flex-col items-center justify-center gap-3">
+            <div className="w-10 h-10 border-3 border-slate-200 border-t-amber-500 rounded-full animate-spin" />
+            <span className="text-xs font-semibold text-slate-400">กำลังโหลดข้อมูลสารสนเทศ...</span>
           </div>
         ) : currentItems.length > 0 ? (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
-              {currentItems.map((item, idx) => {
+            {/* Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentItems.map((item) => {
                 const badge = getBadgeStyle(item.type);
                 const isPolicyItem = item.type === 'นโยบายองค์กร';
                 return (
                   <article
                     key={item.id}
                     onClick={() => setSelectedAnnouncement(item)}
-                    className="animate-fade-up"
-                    style={{
-                      background: '#ffffff', borderRadius: 16,
-                      border: '1px solid rgba(0,0,0,0.06)',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                      display: 'flex', flexDirection: 'column',
-                      cursor: 'pointer', overflow: 'hidden',
-                      transition: 'all 0.22s ease',
-                      animationDelay: `${idx * 35}ms`,
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.transform = 'translateY(-4px)';
-                      e.currentTarget.style.boxShadow = '0 12px 36px rgba(0,0,0,0.1)';
-                      e.currentTarget.style.borderColor = isPolicyItem ? '#bfdbfe' : '#fed7aa';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
-                      e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)';
-                    }}
+                    className="group bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-amber-300 hover:-translate-y-1 transition-all duration-200 flex flex-col overflow-hidden cursor-pointer"
                   >
-                    {/* Cover */}
-                    <div style={{ aspectRatio: '16/9', position: 'relative', overflow: 'hidden', background: isPolicyItem ? '#f0f7ff' : '#fafaf8', flexShrink: 0 }}>
+                    {/* Card Cover Media */}
+                    <div className="aspect-video relative overflow-hidden bg-slate-100">
                       {item.cover_image ? (
                         <img
                           src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${item.cover_image}`}
                           alt={item.title}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <div style={{
-                            width: 54, height: 54, borderRadius: 15,
-                            background: isPolicyItem ? 'linear-gradient(135deg, #dbeafe, #eff6ff)' : 'linear-gradient(135deg, #ffedd5, #fff7ed)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            border: isPolicyItem ? '1px solid #bfdbfe' : '1px solid #fed7aa',
-                            boxShadow: isPolicyItem ? '0 4px 12px rgba(37,99,235,0.12)' : '0 4px 12px rgba(248,153,25,0.12)',
-                          }}>
-                            {isPolicyItem ? <ShieldCheck size={28} style={{ color: '#2563eb' }} /> : <Megaphone size={24} style={{ color: '#f89919' }} />}
-                          </div>
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-100 to-amber-50/40 text-slate-300">
+                          {isPolicyItem ? (
+                            <ShieldCheck size={40} className="text-blue-300" />
+                          ) : (
+                            <Megaphone size={36} className="text-amber-300" />
+                          )}
                         </div>
                       )}
-                      <div style={{
-                        position: 'absolute', top: 10, left: 10,
-                        display: 'flex', alignItems: 'center', gap: 5,
-                        background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(8px)',
-                        border: `1px solid ${badge.border}`,
-                        padding: '3px 9px', borderRadius: 999,
-                        fontSize: 10.5, fontWeight: 600, color: badge.text,
-                        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-                      }}>
-                        {badge.icon} {item.type}
+
+                      {/* Category Badge Floating */}
+                      <div className="absolute top-3 left-3">
+                        <span 
+                          style={{ backgroundColor: badge.bg, color: badge.text, borderColor: badge.border }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border backdrop-blur-md shadow-xs"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: badge.dot }} />
+                          {item.type}
+                        </span>
                       </div>
+
+                      {/* Share button quick action */}
+                      <button
+                        onClick={(e) => handleShare(e, item)}
+                        className="absolute top-3 right-3 p-1.5 rounded-full bg-white/90 backdrop-blur-md text-slate-600 hover:text-amber-600 hover:bg-white shadow-xs transition"
+                        title="แชร์ลิงก์"
+                      >
+                        <Share2 size={13} />
+                      </button>
                     </div>
 
-                    {/* Content */}
-                    <div style={{ padding: '16px 18px 18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: '#94a3b8', fontWeight: 500, marginBottom: 8 }}>
-                        <Clock size={10} /> {formatDate(item.created_at)}
+                    {/* Card Body */}
+                    <div className="p-5 flex-1 flex flex-col justify-between">
+                      <div>
+                        {/* Date */}
+                        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 mb-2">
+                          <Clock size={11} className="text-slate-400" />
+                          <span>{formatDate(item.created_at)}</span>
+                        </div>
+
+                        {/* Title */}
+                        <h4 className="text-base font-bold text-slate-900 group-hover:text-amber-600 transition-colors line-clamp-2 leading-snug mb-2">
+                          {item.title}
+                        </h4>
+
+                        {/* Summary */}
+                        <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-normal mb-4">
+                          {item.content}
+                        </p>
                       </div>
-                      <h3 style={{
-                        fontSize: 14.5, fontWeight: 650, color: '#111827', marginBottom: 7,
-                        lineHeight: 1.45, letterSpacing: '-0.01em',
-                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                      }}>
-                        {item.title}
-                      </h3>
-                      <p style={{
-                        fontSize: 12.5, color: '#64748b', lineHeight: 1.65, flex: 1, marginBottom: 14,
-                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                      }}>
-                        {item.content}
-                      </p>
-                      <div style={{
-                        paddingTop: 12, borderTop: '1px solid #f1f5f9',
-                        display: 'flex', alignItems: 'center', gap: 5,
-                        fontSize: 12.5, fontWeight: 600,
-                        color: isPolicyItem ? '#2563eb' : '#f89919',
-                      }}>
-                        {isPolicyItem ? 'อ่านระเบียบปฏิบัติ' : 'อ่านเพิ่มเติม'} <ArrowRight size={12} />
+
+                      {/* Card Footer Link */}
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
+                        <span className={isPolicyItem ? 'text-blue-600' : 'text-amber-600'}>
+                          {isPolicyItem ? 'อ่านข้อกำหนดนโยบาย' : 'อ่านรายละเอียด'}
+                        </span>
+                        <ArrowRight size={13} className="text-slate-400 group-hover:translate-x-1 group-hover:text-amber-600 transition" />
                       </div>
                     </div>
                   </article>
@@ -519,190 +541,290 @@ export default function AnnouncementPage() {
               })}
             </div>
 
-            {/* Pagination */}
+            {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div style={{ marginTop: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <div className="mt-10 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 4,
-                    padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 500,
-                    background: 'white', border: '1px solid #e5e7eb', color: '#374151',
-                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.35 : 1,
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                  }}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none transition"
                 >
-                  <ChevronLeft size={14} /> ก่อนหน้า
+                  <ChevronLeft size={14} className="inline mr-1" /> ก่อนหน้า
                 </button>
-                <div style={{ display: 'flex', gap: 4 }}>
+
+                <div className="flex items-center gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      style={{
-                        width: 36, height: 36, borderRadius: 10, fontSize: 13, fontWeight: 600,
-                        background: currentPage === page ? (viewMode === 'policies' ? '#2563eb' : '#f89919') : 'white',
-                        color: currentPage === page ? 'white' : '#374151',
-                        border: `1px solid ${currentPage === page ? (viewMode === 'policies' ? '#2563eb' : '#f89919') : '#e5e7eb'}`,
-                        cursor: 'pointer', transition: 'all 0.15s',
-                        boxShadow: currentPage === page ? (viewMode === 'policies' ? '0 2px 10px rgba(37,99,235,0.35)' : '0 2px 10px rgba(248,153,25,0.35)') : '0 1px 3px rgba(0,0,0,0.04)',
-                      }}
+                      className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                        currentPage === page
+                          ? 'bg-amber-500 text-white shadow-xs'
+                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
                     >
                       {page}
                     </button>
                   ))}
                 </div>
+
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 4,
-                    padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 500,
-                    background: 'white', border: '1px solid #e5e7eb', color: '#374151',
-                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.35 : 1,
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                  }}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none transition"
                 >
-                  ถัดไป <ChevronRight size={14} />
+                  ถัดไป <ChevronRight size={14} className="inline ml-1" />
                 </button>
               </div>
             )}
           </>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
-            <div style={{
-              width: 76, height: 76, borderRadius: 22,
-              background: viewMode === 'policies' ? 'linear-gradient(135deg, #dbeafe, #eff6ff)' : 'linear-gradient(135deg, #ffedd5, #fff7ed)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18,
-              boxShadow: viewMode === 'policies' ? '0 8px 24px rgba(37,99,235,0.15)' : '0 8px 24px rgba(248,153,25,0.15)',
-            }}>
-              {viewMode === 'policies' ? <ShieldCheck size={38} style={{ color: '#2563eb' }} /> : <Megaphone size={34} style={{ color: '#f89919' }} />}
+          /* Empty State */
+          <div className="py-16 text-center bg-white rounded-3xl border border-dashed border-slate-200 p-8 max-w-lg mx-auto shadow-xs">
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 mx-auto flex items-center justify-center mb-4">
+              {viewMode === 'policies' ? <ShieldCheck size={32} /> : <Megaphone size={32} />}
             </div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1f2937', marginBottom: 6 }}>
-              {searchTerm ? `ไม่พบผลลัพธ์สำหรับ "${searchTerm}"` : (viewMode === 'policies' ? 'ยังไม่มีเอกสารนโยบาย' : 'ยังไม่มีข้อมูลในหมวดหมู่นี้')}
-            </h3>
-            <p style={{ fontSize: 13, color: '#9ca3af' }}>
-              {viewMode === 'policies' ? 'นโยบายใหม่จะแสดงที่นี่เมื่อมีการเผยแพร่' : 'ประกาศใหม่จะแสดงที่นี่เมื่อมีการอัปเดต'}
+            <h4 className="text-base font-bold text-slate-800 mb-1">
+              {searchTerm 
+                ? `ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"` 
+                : (viewMode === 'policies' ? 'ยังไม่มีเอกสารนโยบายในขณะนี้' : 'ยังไม่มีประกาศในหมวดหมู่นี้')}
+            </h4>
+            <p className="text-xs text-slate-500 font-normal max-w-xs mx-auto mb-4">
+              {viewMode === 'policies'
+                ? 'เมื่อผู้ดูแลระบบเผยแพร่นโยบายและระเบียบปฏิบัติใหม่ ข้อมูลจะแสดงให้เห็นที่นี่ทันที'
+                : 'สามารถตรวจสอบประกาศอื่น ๆ หรือกดล้างการค้นหาเพื่อดูข้อมูลทั้งหมด'}
             </p>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
+              >
+                ล้างคำค้นหา
+              </button>
+            )}
           </div>
         )}
+
+      </main>
+
+      {/* ========== 5. COMPANY DIRECTORY & AFFILIATES SHOWCASE ========== */}
+      <section className="bg-slate-100/70 border-t border-slate-200 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-2xl mx-auto mb-8">
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+              Corporate Affiliates
+            </span>
+            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2">
+              กลุ่มบริษัทในเครือ ASCG Group
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 font-normal">
+              เครือข่ายธุรกิจด้านวิศวกรรม เทคโนโลยี และการบริหารโครงการแบบครบวงจร
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
+            {COMPANIES.map((c) => (
+              <div
+                key={c.prefix}
+                className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-md hover:border-amber-300 hover:-translate-y-0.5 transition-all text-center flex flex-col items-center justify-center group"
+              >
+                <div className="h-12 w-full flex items-center justify-center mb-2">
+                  <img src={c.logo} alt={c.name} className="max-h-10 max-w-full object-contain grayscale group-hover:grayscale-0 transition" />
+                </div>
+                <span className="text-xs font-bold text-slate-800">{c.prefix}</span>
+                <span className="text-[10px] text-slate-600 line-clamp-1 font-normal">{c.name.replace('บริษัท ', '').replace(' จำกัด', '')}</span>
+              </div>
+            ))}
+          </div>
+
+        </div>
       </section>
 
-      {/* ====== MODAL ====== */}
+      {/* ========== 6. QUICK SERVICES & SUPPORT FOOTER ========== */}
+      <footer className="bg-slate-900 text-slate-400 text-xs py-10 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-slate-800/80">
+            
+            {/* Col 1: Brand Info */}
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-2.5 text-white font-bold text-base mb-3">
+                <img src={logo} alt="ASCG Group" className="h-6 w-auto object-contain brightness-0 invert" />
+                <span>ASCG Global Group Co., Ltd.</span>
+              </div>
+              <p className="text-slate-400 text-xs leading-relaxed max-w-md font-normal mb-4">
+                ศูนย์กลางระบบสารสนเทศและการบริหารจัดการทรัพยากรบุคคล (Enterprise Portal & IT Infrastructure Hub) 
+                เพื่อประสิทธิภาพสูงสุดของบุคลากรในเครือ
+              </p>
+              <div className="flex items-center gap-3 text-slate-500">
+                <span>© {new Date().getFullYear()} ASCG Group. All Rights Reserved.</span>
+              </div>
+            </div>
+
+            {/* Col 2: Quick Links */}
+            <div>
+              <h5 className="text-white font-bold text-xs uppercase tracking-wider mb-3">บริการด่วน</h5>
+              <ul className="space-y-2">
+                <li>
+                  <button onClick={() => navigate('/report-it')} className="hover:text-amber-400 transition flex items-center gap-1.5">
+                    <Headset size={13} /> แจ้งซ่อมและบริการ IT
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleSwitchMode('policies')} className="hover:text-blue-400 transition flex items-center gap-1.5">
+                    <ShieldCheck size={13} /> นโยบายและระเบียบปฏิบัติ
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate('/login')} className="hover:text-amber-400 transition flex items-center gap-1.5">
+                    <LogIn size={13} /> เข้าสู่ระบบพอร์ทัล
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 3: IT Support Contact */}
+            <div>
+              <h5 className="text-white font-bold text-xs uppercase tracking-wider mb-3">ติดต่อทีมสนับสนุน IT</h5>
+              <p className="text-slate-400 leading-relaxed font-normal mb-2">
+                ฝ่ายเทคโนโลยีสารสนเทศ (IT Department)
+              </p>
+              <p className="text-slate-300 font-semibold">
+                อีเมล: it-support@ascggroup.com
+              </p>
+              <p className="text-slate-400 mt-1">
+                เวลาทำการ: จันทร์ - ศุกร์ 08:30 - 17:30 น.
+              </p>
+            </div>
+
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400">
+            <div>ASCG Enterprise Portal System v2.6.4 (Cloud MariaDB Connected)</div>
+            <div className="flex items-center gap-4">
+              <span>Security Standard: TLS 1.3</span>
+              <span>•</span>
+              <span>Single Sign-On Ready</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* ========== 7. RICH READER MODAL ========== */}
       {selectedAnnouncement && (() => {
         const badge = getBadgeStyle(selectedAnnouncement.type);
         const isPolicyModal = selectedAnnouncement.type === 'นโยบายองค์กร';
         return (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            
+            {/* Backdrop */}
             <div
-              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(8px)' }}
+              className="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity"
               onClick={() => setSelectedAnnouncement(null)}
             />
-            <div className="animate-scale-in" style={{
-              position: 'relative', background: 'white', borderRadius: 22,
-              boxShadow: '0 40px 100px rgba(0,0,0,0.25)',
-              width: '100%', maxWidth: 700, maxHeight: '90vh',
-              display: 'flex', flexDirection: 'column', overflow: 'hidden',
-              border: '1px solid rgba(0,0,0,0.06)',
-            }}>
-              {/* Cover */}
-              <div style={{ position: 'relative', flexShrink: 0 }}>
+
+            {/* Modal Dialog Card */}
+            <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] z-10 animate-scale-in">
+              
+              {/* Modal Header Media */}
+              <div className="relative flex-shrink-0">
                 {selectedAnnouncement.cover_image ? (
-                  <div style={{ width: '100%', height: 230 }}>
+                  <div className="w-full h-56 sm:h-64 relative bg-slate-900">
                     <img
                       src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${selectedAnnouncement.cover_image}`}
                       alt={selectedAnnouncement.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      className="w-full h-full object-cover"
                     />
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.4), transparent 60%)' }} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-black/20 to-transparent" />
                   </div>
                 ) : (
-                  <div style={{
-                    width: '100%', height: 100,
-                    background: isPolicyModal
-                      ? 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)'
-                      : 'linear-gradient(135deg, #1c1917 0%, #292524 100%)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {isPolicyModal
-                      ? <ShieldCheck size={44} style={{ color: 'rgba(255,255,255,0.28)' }} />
-                      : <Megaphone size={38} style={{ color: 'rgba(255,255,255,0.18)' }} />
-                    }
+                  <div className={`w-full h-28 flex items-center justify-center ${
+                    isPolicyModal
+                      ? 'bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900'
+                      : 'bg-gradient-to-r from-amber-900 via-orange-900 to-slate-900'
+                  }`}>
+                    {isPolicyModal ? (
+                      <ShieldCheck size={48} className="text-blue-400/40" />
+                    ) : (
+                      <Megaphone size={44} className="text-amber-400/40" />
+                    )}
                   </div>
                 )}
+
+                {/* Close Button */}
                 <button
                   onClick={() => setSelectedAnnouncement(null)}
-                  style={{
-                    position: 'absolute', top: 14, right: 14,
-                    width: 36, height: 36, borderRadius: 10,
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', color: '#374151',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.12)', transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.transform = 'scale(1.08)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.92)'; e.currentTarget.style.transform = 'scale(1)'; }}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/90 backdrop-blur-md text-slate-700 hover:text-black hover:bg-white shadow-md transition-all active:scale-95"
+                  title="ปิดหน้าต่าง (Esc)"
                 >
-                  <X size={15} />
+                  <X size={18} />
                 </button>
               </div>
 
-              {/* Body */}
-              <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '26px 30px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                    background: badge.bg, color: badge.text, border: `1px solid ${badge.border}`,
-                    padding: '4px 11px', borderRadius: 999, fontSize: 11, fontWeight: 600,
-                  }}>
-                    {badge.icon} {selectedAnnouncement.type}
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#94a3b8' }}>
-                    <Clock size={11} /> {formatDate(selectedAnnouncement.created_at)}
-                  </span>
+              {/* Modal Scrollable Body */}
+              <div className="p-6 sm:p-8 overflow-y-auto flex-1 custom-scrollbar">
+                
+                {/* Meta Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <span 
+                      style={{ backgroundColor: badge.bg, color: badge.text, borderColor: badge.border }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: badge.dot }} />
+                      {selectedAnnouncement.type}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs text-slate-600 font-medium">
+                      <Clock size={12} className="text-slate-400" />
+                      {formatDate(selectedAnnouncement.created_at)}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={(e) => handleShare(e, selectedAnnouncement)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-amber-600 transition"
+                  >
+                    <Share2 size={13} />
+                    <span>แชร์</span>
+                  </button>
                 </div>
-                <h2 style={{ fontSize: 'clamp(18px, 3vw, 22px)', fontWeight: 750, color: '#0f172a', lineHeight: 1.3, letterSpacing: '-0.03em', marginBottom: 20 }}>
+
+                {/* Main Title */}
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug mb-5">
                   {selectedAnnouncement.title}
-                </h2>
-                <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.9, whiteSpace: 'pre-wrap' }}>
+                </h3>
+
+                {/* Content */}
+                <div className="text-slate-700 text-sm sm:text-base leading-relaxed whitespace-pre-wrap font-normal">
                   {selectedAnnouncement.content}
                 </div>
+
               </div>
 
-              {/* Footer */}
-              <div style={{ flexShrink: 0, padding: '14px 30px', borderTop: '1px solid #f1f5f9', background: '#fafbfc', display: 'flex', justifyContent: 'flex-end' }}>
+              {/* Modal Footer */}
+              <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
+                <div className="text-xs text-slate-600 font-medium flex items-center gap-1">
+                  <Building2 size={13} className="text-slate-400" />
+                  <span>ฝ่ายบริหารและทรัพยากรบุคคล ASCG Group</span>
+                </div>
+
                 <button
                   onClick={() => setSelectedAnnouncement(null)}
-                  style={{
-                    padding: '9px 22px',
-                    background: isPolicyModal
-                      ? 'linear-gradient(135deg, #1d4ed8, #2563eb)'
-                      : 'linear-gradient(135deg, #e8860a, #f89919)',
-                    color: 'white', border: 'none', borderRadius: 10,
-                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    boxShadow: isPolicyModal ? '0 3px 12px rgba(37,99,235,0.35)' : '0 3px 12px rgba(248,153,25,0.35)',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                  className={`px-5 py-2 rounded-xl text-xs font-bold text-white transition-all shadow-md active:scale-95 ${
+                    isPolicyModal
+                      ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'
+                      : 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/20'
+                  }`}
                 >
                   ปิดหน้าต่าง
                 </button>
               </div>
+
             </div>
           </div>
         );
       })()}
 
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 999px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
-      `}</style>
     </div>
   );
 }
