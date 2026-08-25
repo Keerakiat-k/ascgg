@@ -172,9 +172,14 @@ export default function AddEmployeePage() {
     }
 
     try {
-      const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/employees', {
+      const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+      const baseUrl = getApiBase();
+      const response = await fetch(`${baseUrl}/api/employees`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(formData),
       });
 
@@ -187,10 +192,11 @@ export default function AddEmployeePage() {
         if (profileImageFile && empId) {
           try {
             const imgFormData = new FormData();
-            imgFormData.append('profileImage', profileImageFile);
+            imgFormData.append('profile_image', profileImageFile);
 
-            await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/employees/${empId}/profile-image`, {
+            await fetch(`${baseUrl}/api/employees/${empId}/profile-image`, {
               method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` },
               body: imgFormData
             });
           } catch (imgErr) {

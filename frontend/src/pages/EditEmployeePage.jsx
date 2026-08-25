@@ -159,9 +159,14 @@ export default function EditEmployeePage() {
     setError('');
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/employees/${id}`, {
+      const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+      const baseUrl = getApiBase();
+      const response = await fetch(`${baseUrl}/api/employees/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(formData),
       });
 
@@ -171,10 +176,11 @@ export default function EditEmployeePage() {
         if (profileImageFile) {
           try {
             const imgFormData = new FormData();
-            imgFormData.append('profileImage', profileImageFile);
+            imgFormData.append('profile_image', profileImageFile);
 
-            await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/employees/${id}/profile-image`, {
+            await fetch(`${baseUrl}/api/employees/${id}/profile-image`, {
               method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` },
               body: imgFormData
             });
           } catch (imgErr) {
