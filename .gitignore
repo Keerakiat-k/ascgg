@@ -68,3 +68,7 @@ PROJECT_SUMMARY.md
 start_project.ps1
 ascg_g_db.sql
 docs/
+cloudflared.exe
+config.yml
+
+
