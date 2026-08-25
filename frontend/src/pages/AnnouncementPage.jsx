@@ -145,16 +145,6 @@ export default function AnnouncementPage() {
             >
               <ShieldCheck size={14} style={{ color: viewMode === 'policies' ? '#2563eb' : '#94a3b8' }} />
               <span>นโยบายองค์กร</span>
-              {policyAnnouncements.length > 0 && (
-                <span style={{
-                  fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 99,
-                  background: viewMode === 'policies' ? '#eff6ff' : '#e2e8f0',
-                  color: viewMode === 'policies' ? '#1d4ed8' : '#475569',
-                  border: viewMode === 'policies' ? '1px solid #bfdbfe' : 'none'
-                }}>
-                  {policyAnnouncements.length}
-                </span>
-              )}
             </button>
           </div>
 
