@@ -1081,11 +1081,14 @@ export default function NetworkAdminPage() {
   const getApiBase = () => {
     const envUrl = import.meta.env.VITE_API_BASE_URL;
     if (envUrl && envUrl.trim() !== '') return envUrl.trim().replace(/\/$/, '');
-    if (typeof window !== 'undefined' && window.location && window.location.hostname) {
-      const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-      return `${protocol}//${window.location.hostname}:5000`;
+    if (typeof window !== 'undefined' && window.location) {
+      const { hostname, protocol } = window.location;
+      if (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.startsWith('192.168.')) {
+        return '';
+      }
+      return `${protocol}//${hostname}:5000`;
     }
-    return 'http://localhost:5000';
+    return '';
   };
 
   // -------------------------------------------------------------

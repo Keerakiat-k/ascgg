@@ -4,12 +4,16 @@ export const getApiBase = () => {
   if (envUrl && envUrl.trim() !== '') {
     return envUrl.trim().replace(/\/$/, '');
   }
-  // Automatically fallback to browser hostname on port 5000 if env is not defined
-  if (typeof window !== 'undefined' && window.location && window.location.hostname) {
-    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-    return `${protocol}//${window.location.hostname}:5000`;
+  if (typeof window !== 'undefined' && window.location) {
+    const { hostname, protocol } = window.location;
+    // If accessing via domain name (e.g. portal.ascgglobalgroup.com), use relative path (standard HTTPS)
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.startsWith('192.168.')) {
+      return '';
+    }
+    // Local dev fallback
+    return `${protocol}//${hostname}:5000`;
   }
-  return 'http://localhost:5000';
+  return '';
 };
 
 export const API_BASE_URL = getApiBase();

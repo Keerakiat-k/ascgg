@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import InputField from '../ui/InputField';
 import Button from '../ui/Button';
+import { getApiBase } from '../../config/api';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -17,10 +18,7 @@ export default function LoginForm() {
     setIsLoading(true);
     setError('');
     try {
-      const envUrl = import.meta.env.VITE_API_BASE_URL;
-      const baseUrl = (envUrl && envUrl.trim() !== '')
-        ? envUrl.trim().replace(/\/$/, '')
-        : `${window.location.protocol === 'https:' ? 'https:' : 'http:'}//${window.location.hostname}:5000`;
+      const baseUrl = getApiBase();
 
       // ยิง API ไปยัง Backend
       const response = await fetch(baseUrl + '/api/auth/login', {
