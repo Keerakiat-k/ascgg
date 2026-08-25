@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Megaphone, Calendar, Info, Clock, LogIn, ArrowRight, Headset, X, Search, Bell, ShieldCheck, BookOpen, FileText, CheckCircle2 } from 'lucide-react';
+import { Megaphone, Calendar, Info, Clock, LogIn, ArrowRight, Headset, X, Search, Bell, ShieldCheck, ChevronLeft, ChevronRight, Newspaper, LayoutGrid } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import heroBg from '../assets/hero_bg.jpg';
@@ -91,75 +91,67 @@ export default function AnnouncementPage() {
   // Featured item only for News Mode when looking at 'ทั้งหมด'
   const latestNewsItem = newsAnnouncements[0];
 
-  const handleSwitchMode = (mode) => {
-    setViewMode(mode);
-    setFilter('ทั้งหมด');
-    setSearchTerm('');
-  };
+  const formatDate = (dateStr) =>
+    new Date(dateStr).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const isShowingFeatured = viewMode === 'news' && !isLoading && searchTerm === '' && filter === 'ทั้งหมด';
+  const featuredItems = newsAnnouncements.slice(1, 3);
 
   return (
-    <div style={{ minHeight: '100vh', fontFamily: "'Inter', 'Prompt', system-ui, sans-serif", background: '#f4f5f7' }}>
+    <div style={{ minHeight: '100vh', fontFamily: "'Inter', 'Prompt', system-ui, sans-serif", background: '#f0f2f5' }}>
 
-      {/* ========== NAVBAR ========== */}
+      {/* ====== NAVBAR ====== */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 50,
-        background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #e9ebee',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(0,0,0,0.06)',
+        boxShadow: '0 1px 0 rgba(0,0,0,0.04)',
       }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', height: 62, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          
-          {/* Logo */}
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', height: 60, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => handleSwitchMode('news')}>
-            <img src={logo} alt="ASCG Group" style={{ height: 34, width: 'auto', objectFit: 'contain' }} />
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.3px' }} className="hidden sm:block">ASCG Group</span>
+            <img src={logo} alt="ASCG" style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>ASCG Group</div>
+              <div style={{ fontSize: 10.5, color: '#9ca3af', fontWeight: 500 }}>HR & IT System</div>
+            </div>
           </div>
 
-          {/* Mode Switcher Buttons */}
-          <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 shadow-inner">
-            <button
-              onClick={() => handleSwitchMode('news')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '6px 16px', borderRadius: 9, fontSize: 13, fontWeight: viewMode === 'news' ? 700 : 500,
-                background: viewMode === 'news' ? '#ffffff' : 'transparent',
-                color: viewMode === 'news' ? '#c2690a' : '#64748b',
-                boxShadow: viewMode === 'news' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                border: 'none', cursor: 'pointer', transition: 'all 0.15s ease'
-              }}
-            >
-              <Megaphone size={14} style={{ color: viewMode === 'news' ? '#f89919' : '#94a3b8' }} />
-              <span>ข่าวสารและกิจกรรม</span>
-            </button>
-
-            <button
-              onClick={() => handleSwitchMode('policies')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '6px 16px', borderRadius: 9, fontSize: 13, fontWeight: viewMode === 'policies' ? 700 : 500,
-                background: viewMode === 'policies' ? '#ffffff' : 'transparent',
-                color: viewMode === 'policies' ? '#1d4ed8' : '#64748b',
-                boxShadow: viewMode === 'policies' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                border: 'none', cursor: 'pointer', transition: 'all 0.15s ease'
-              }}
-            >
-              <ShieldCheck size={14} style={{ color: viewMode === 'policies' ? '#2563eb' : '#94a3b8' }} />
-              <span>นโยบายองค์กร</span>
-            </button>
+          {/* Mode Toggle */}
+          <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: 12, padding: 3, gap: 2 }}>
+            {[
+              { key: 'news', label: 'ข่าวสาร', icon: <Newspaper size={13} /> },
+              { key: 'policies', label: 'นโยบาย', icon: <ShieldCheck size={13} /> },
+            ].map(({ key, label, icon }) => (
+              <button
+                key={key}
+                onClick={() => handleSwitchMode(key)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '6px 14px', borderRadius: 9, fontSize: 13, fontWeight: viewMode === key ? 600 : 500,
+                  background: viewMode === key ? '#ffffff' : 'transparent',
+                  color: viewMode === key ? (key === 'policies' ? '#1d4ed8' : '#ea7c0a') : '#64748b',
+                  border: 'none', cursor: 'pointer',
+                  boxShadow: viewMode === key ? '0 1px 4px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04)' : 'none',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {icon} {label}
+              </button>
+            ))}
           </div>
 
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button
               onClick={() => navigate('/report-it')}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                padding: '7px 14px', borderRadius: 10, fontSize: 13, fontWeight: 500,
-                border: '1px solid #e9ebee', background: 'white', color: '#4b5563',
+                padding: '7px 14px', borderRadius: 9, fontSize: 13, fontWeight: 500,
+                border: '1px solid #e5e7eb', background: 'white', color: '#374151',
                 cursor: 'pointer', transition: 'all 0.15s',
               }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = '#f89919'; e.currentTarget.style.color = '#c2690a'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#e9ebee'; e.currentTarget.style.color = '#4b5563'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#374151'; }}
             >
               <Headset size={14} style={{ color: '#f89919' }} />
               <span className="hidden sm:inline">แจ้งปัญหา IT</span>
@@ -168,13 +160,13 @@ export default function AnnouncementPage() {
               onClick={() => navigate('/login')}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                padding: '7px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600,
-                background: '#f89919', color: 'white', border: 'none',
-                cursor: 'pointer', transition: 'all 0.15s',
-                boxShadow: '0 2px 6px rgba(248,153,25,0.3)',
+                padding: '7px 16px', borderRadius: 9, fontSize: 13, fontWeight: 600,
+                background: 'linear-gradient(135deg, #f89919 0%, #e8860a 100%)',
+                color: 'white', border: 'none', cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(248,153,25,0.35)', transition: 'all 0.15s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#e8860a'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#f89919'; }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
             >
               <LogIn size={14} />
               <span className="hidden sm:inline">เข้าสู่ระบบ</span>
@@ -183,251 +175,254 @@ export default function AnnouncementPage() {
         </div>
       </nav>
 
-      {/* ========== HERO SECTION ========== */}
-      <section style={{ position: 'relative', overflow: 'hidden', padding: '68px 24px 76px' }}>
-        {/* Background Image */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center 45%', opacity: 0.52 }} />
-        
-        {/* Dynamic Gradient Overlay */}
+      {/* ====== HERO ====== */}
+      <section style={{ position: 'relative', overflow: 'hidden', padding: '56px 24px 64px' }}>
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center 40%' }} />
         <div style={{
           position: 'absolute', inset: 0,
           background: viewMode === 'policies'
-            ? 'linear-gradient(160deg, rgba(9,19,38,0.92) 0%, rgba(20,40,75,0.78) 50%, rgba(37,99,235,0.45) 100%)'
-            : 'linear-gradient(160deg, rgba(10,8,5,0.88) 0%, rgba(35,20,8,0.72) 50%, rgba(248,153,25,0.45) 100%)'
+            ? 'linear-gradient(150deg, rgba(7,15,35,0.94) 0%, rgba(17,38,76,0.82) 55%, rgba(30,80,220,0.4) 100%)'
+            : 'linear-gradient(150deg, rgba(8,6,3,0.92) 0%, rgba(30,16,5,0.78) 55%, rgba(240,140,10,0.38) 100%)',
+        }} />
+        <div style={{
+          position: 'absolute', width: 500, height: 500, borderRadius: '50%',
+          background: viewMode === 'policies' ? 'rgba(37,99,235,0.12)' : 'rgba(248,153,25,0.12)',
+          filter: 'blur(90px)', top: -150, right: -80, pointerEvents: 'none',
         }} />
 
-        <div style={{ position: 'relative', zIndex: 10, maxWidth: 740, margin: '0 auto', textAlign: 'center' }}>
-          {/* Eyebrow */}
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 7,
-            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)',
-            borderRadius: 9999, padding: '6px 16px', marginBottom: 20,
-            fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.85)',
-            backdropFilter: 'blur(8px)', letterSpacing: '0.04em',
+            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: 9999, padding: '5px 14px', marginBottom: 18,
+            fontSize: 11.5, fontWeight: 600, color: 'rgba(255,255,255,0.8)',
+            backdropFilter: 'blur(10px)', letterSpacing: '0.06em', textTransform: 'uppercase',
           }}>
-            {viewMode === 'policies' ? (
-              <>
-                <ShieldCheck size={13} style={{ color: '#60a5fa' }} />
-                นโยบายและระเบียบปฏิบัติองค์กร (Corporate Governance & Policies)
-              </>
-            ) : (
-              <>
-                <Bell size={12} style={{ color: '#f89919' }} />
-                ข่าวสารและกิจกรรมองค์กร (News & Events)
-              </>
-            )}
+            {viewMode === 'policies'
+              ? <><ShieldCheck size={12} style={{ color: '#60a5fa' }} /> นโยบายและระเบียบปฏิบัติ</>
+              : <><Bell size={12} style={{ color: '#fbbf24' }} /> ข่าวสารและกิจกรรมองค์กร</>
+            }
           </div>
 
           <h1 style={{
-            fontSize: 'clamp(28px, 5vw, 48px)',
-            fontWeight: 800, color: '#ffffff',
-            letterSpacing: '-0.04em', lineHeight: 1.18,
-            marginBottom: 14, margin: '0 0 14px',
+            fontSize: 'clamp(26px, 5vw, 44px)', fontWeight: 800,
+            color: '#ffffff', letterSpacing: '-0.04em', lineHeight: 1.15,
+            margin: '0 0 12px',
           }}>
             {viewMode === 'policies' ? (
-              <>
-                นโยบายและระเบียบปฏิบัติ
-                <br />
-                <span style={{ color: '#60a5fa' }}>ของ ASCG Group</span>
-              </>
+              <>นโยบายและระเบียบ<br /><span style={{ color: '#60a5fa' }}>ของ ASCG Group</span></>
             ) : (
-              <>
-                อัปเดตทุกความเคลื่อนไหว
-                <br />
-                <span style={{ color: '#f89919' }}>ของ ASCG Group</span>
+              <>ติดตามทุกความเคลื่อนไหว<br />
+                <span style={{ background: 'linear-gradient(90deg, #fbbf24, #f89919)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  ของ ASCG Group
+                </span>
               </>
             )}
           </h1>
 
-          <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, maxWidth: 540, margin: '0 auto 28px', fontWeight: 400 }}>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.75, maxWidth: 520, margin: '0 auto 26px' }}>
             {viewMode === 'policies'
-              ? 'คู่มือ กฎระเบียบข้อบังคับ และมาตรฐานความปลอดภัยสารสนเทศสำหรับบุคลากรทุกคนเพื่อยึดถือปฏิบัติร่วมกัน'
-              : 'ติดตามประกาศสำคัญ ข่าวกิจกรรม และความเคลื่อนไหวต่างๆ ภายในองค์กร'}
+              ? 'คู่มือ กฎระเบียบ และมาตรฐานความปลอดภัยสำหรับบุคลากรทุกคน'
+              : 'ประกาศสำคัญ ข่าวกิจกรรม และความเคลื่อนไหวต่างๆ ภายในองค์กร'}
           </p>
 
-          {/* Search box */}
-          <div style={{ position: 'relative', maxWidth: 480, margin: '0 auto' }}>
-            <Search size={16} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', maxWidth: 440, margin: '0 auto' }}>
+            <Search size={15} style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none' }} />
             <input
               type="text"
-              placeholder={viewMode === 'policies' ? "ค้นหานโยบาย, กฎระเบียบข้อบังคับ..." : "ค้นหาประกาศ, ข่าวสาร..."}
+              placeholder={viewMode === 'policies' ? 'ค้นหานโยบาย...' : 'ค้นหาข่าวสาร, ประกาศ...'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
-                width: '100%', paddingLeft: 46, paddingRight: 16, paddingTop: 12, paddingBottom: 12,
-                borderRadius: 14, fontSize: 13.5, outline: 'none',
-                background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.2)', color: '#ffffff',
+                width: '100%', paddingLeft: 44, paddingRight: 16, paddingTop: 11, paddingBottom: 11,
+                borderRadius: 12, fontSize: 13.5, outline: 'none',
+                background: 'rgba(255,255,255,0.09)', backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.16)', color: '#ffffff',
                 boxSizing: 'border-box', transition: 'all 0.2s',
               }}
-              onFocus={e => { e.target.style.background = 'rgba(255,255,255,0.15)'; e.target.style.borderColor = viewMode === 'policies' ? 'rgba(96,165,250,0.6)' : 'rgba(248,153,25,0.6)'; }}
-              onBlur={e => { e.target.style.background = 'rgba(255,255,255,0.1)'; e.target.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+              onFocus={e => { e.target.style.background = 'rgba(255,255,255,0.14)'; e.target.style.borderColor = viewMode === 'policies' ? 'rgba(96,165,250,0.55)' : 'rgba(251,191,36,0.55)'; }}
+              onBlur={e => { e.target.style.background = 'rgba(255,255,255,0.09)'; e.target.style.borderColor = 'rgba(255,255,255,0.16)'; }}
             />
           </div>
         </div>
       </section>
 
-      {/* ========== FEATURED CARD (เฉพาะโหมดข่าวสาร เมื่อดูทั้งหมด และไม่มีค้นหา) ========== */}
-      {viewMode === 'news' && latestNewsItem && !isLoading && searchTerm === '' && filter === 'ทั้งหมด' && (
-        <section style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', marginTop: -36, marginBottom: 36, position: 'relative', zIndex: 10 }}>
-          <div
-            onClick={() => setSelectedAnnouncement(latestNewsItem)}
-            style={{
-              borderRadius: 20, overflow: 'hidden', cursor: 'pointer',
-              background: '#1c1917',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.1)',
-              border: '1px solid #292524',
-              display: 'flex', flexDirection: 'row', flexWrap: 'wrap',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 28px 70px rgba(0,0,0,0.22), 0 8px 24px rgba(0,0,0,0.12)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 20px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.1)'; }}
-          >
-            {/* Text */}
-            <div style={{ padding: '40px 44px', flex: 1, minWidth: 280, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-                <span style={{
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  background: '#f89919', color: 'white',
-                  padding: '4px 12px', borderRadius: 9999, fontSize: 11, fontWeight: 700,
-                }}>
-                  <Bell size={10} style={{ animation: 'pulse 2s infinite' }} /> ล่าสุด
-                </span>
-                {(() => {
-                  const s = getBadgeStyle(latestNewsItem.type);
-                  return (
-                    <span style={{
-                      display: 'flex', alignItems: 'center', gap: 5,
-                      background: s.bg, color: s.text, border: `1px solid ${s.border}`,
-                      padding: '4px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 600,
-                    }}>
-                      {s.icon} {latestNewsItem.type}
-                    </span>
-                  );
-                })()}
-              </div>
-              <h2 style={{ fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 700, color: '#ffffff', lineHeight: 1.3, marginBottom: 12, letterSpacing: '-0.02em' }}>
-                {latestNewsItem.title}
-              </h2>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, marginBottom: 24, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                {latestNewsItem.content}
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>
-                  <Clock size={12} />
-                  {new Date(latestNewsItem.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, fontWeight: 600, color: '#f89919' }}>
-                  อ่านต่อ <ArrowRight size={14} />
-                </span>
-              </div>
-            </div>
-            {/* Image */}
-            <div style={{ width: '40%', minWidth: 200, minHeight: 220, position: 'relative', background: '#292524', overflow: 'hidden' }}>
+      {/* ====== FEATURED SECTION - ข่าวหลัก + ข่าวรอง ====== */}
+      {isShowingFeatured && latestNewsItem && (
+        <section style={{ maxWidth: 1200, margin: '-28px auto 0', padding: '0 20px', position: 'relative', zIndex: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 16, alignItems: 'stretch' }}>
+
+            {/* Main Featured */}
+            <div
+              onClick={() => setSelectedAnnouncement(latestNewsItem)}
+              style={{
+                borderRadius: 20, overflow: 'hidden', cursor: 'pointer',
+                background: '#111827', position: 'relative', minHeight: 340,
+                boxShadow: '0 16px 48px rgba(0,0,0,0.22)', transition: 'transform 0.25s, box-shadow 0.25s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 24px 60px rgba(0,0,0,0.28)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(0,0,0,0.22)'; }}
+            >
               {latestNewsItem.cover_image ? (
                 <img
                   src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${latestNewsItem.cover_image}`}
                   alt={latestNewsItem.title}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85, transition: 'transform 0.5s, opacity 0.3s' }}
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.48 }}
                 />
               ) : (
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.1 }}>
-                  <Megaphone size={72} style={{ color: 'white' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #1c1917 0%, #292524 100%)' }} />
+              )}
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.08) 100%)' }} />
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '30px 30px 30px' }}>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#f89919', color: 'white', padding: '3px 10px', borderRadius: 999, fontSize: 10.5, fontWeight: 700 }}>
+                    <Bell size={9} /> ล่าสุด
+                  </span>
+                  {(() => {
+                    const s = getBadgeStyle(latestNewsItem.type);
+                    return (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', color: 'rgba(255,255,255,0.88)', border: '1px solid rgba(255,255,255,0.18)', padding: '3px 10px', borderRadius: 999, fontSize: 10.5, fontWeight: 600 }}>
+                        {s.icon} {latestNewsItem.type}
+                      </span>
+                    );
+                  })()}
+                </div>
+                <h2 style={{ fontSize: 'clamp(16px, 2.5vw, 22px)', fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: 10, letterSpacing: '-0.02em' }}>
+                  {latestNewsItem.title}
+                </h2>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.52)', lineHeight: 1.65, marginBottom: 18, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {latestNewsItem.content}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: 'rgba(255,255,255,0.38)' }}>
+                    <Clock size={11} /> {formatDate(latestNewsItem.created_at)}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, fontWeight: 600, color: '#fbbf24' }}>
+                    อ่านต่อ <ArrowRight size={13} />
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Side cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {featuredItems.length > 0 ? featuredItems.map((item) => {
+                const badge = getBadgeStyle(item.type);
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => setSelectedAnnouncement(item)}
+                    style={{
+                      borderRadius: 16, overflow: 'hidden', cursor: 'pointer', flex: 1,
+                      background: 'white', border: '1px solid rgba(0,0,0,0.06)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
+                      display: 'flex', flexDirection: 'column', minHeight: 150,
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.11)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.07)'; }}
+                  >
+                    {item.cover_image && (
+                      <div style={{ height: 80, overflow: 'hidden', flexShrink: 0 }}>
+                        <img src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${item.cover_image}`} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                    <div style={{ padding: '14px 16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: badge.bg, color: badge.text, border: `1px solid ${badge.border}`, padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600 }}>
+                          {badge.icon} {item.type}
+                        </span>
+                        <span style={{ fontSize: 10.5, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Clock size={9} /> {formatDate(item.created_at)}
+                        </span>
+                      </div>
+                      <h3 style={{ fontSize: 13.5, fontWeight: 650, color: '#111827', lineHeight: 1.4, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {item.title}
+                      </h3>
+                      <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#f89919' }}>
+                        อ่านต่อ <ArrowRight size={11} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              }) : (
+                <div style={{ flex: 1, borderRadius: 16, background: '#f8fafc', border: '1px dashed #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 150 }}>
+                  <p style={{ fontSize: 12, color: '#9ca3af' }}>ยังไม่มีข่าวสารเพิ่มเติม</p>
                 </div>
               )}
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #1c1917 0%, transparent 40%)' }} />
             </div>
           </div>
         </section>
       )}
 
-      {/* ========== FILTER BAR (เฉพาะโหมดข่าวสาร) ========== */}
-      {viewMode === 'news' && (
-        <section style={{
-          maxWidth: 1280,
-          margin: '0 auto',
-          padding: (latestNewsItem && !isLoading && searchTerm === '' && filter === 'ทั้งหมด')
-            ? '0 24px 28px'
-            : '36px 24px 28px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            {newsCategories.map((type) => {
-              const active = filter === type;
-              return (
-                <button
-                  key={type}
-                  onClick={() => setFilter(type)}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    padding: '8px 20px', borderRadius: 9999, fontSize: 13, fontWeight: active ? 600 : 500,
-                    border: `1px solid ${active ? '#f89919' : '#e9ebee'}`,
-                    background: active ? '#f89919' : '#ffffff',
-                    color: active ? '#ffffff' : '#4b5563',
-                    cursor: 'pointer', transition: 'all 0.15s',
-                    boxShadow: active ? '0 3px 10px rgba(248,153,25,0.25)' : '0 1px 3px rgba(0,0,0,0.04)',
-                  }}
-                  onMouseEnter={e => {
-                    if (!active) {
-                      e.currentTarget.style.borderColor = '#f89919';
-                      e.currentTarget.style.color = '#c2690a';
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!active) {
-                      e.currentTarget.style.borderColor = '#e9ebee';
-                      e.currentTarget.style.color = '#4b5563';
-                    }
-                  }}
-                >
-                  {type === 'ประกาศสำคัญ' && <Megaphone size={13} style={{ color: active ? 'white' : '#dc2626' }} />}
-                  {type === 'กิจกรรม' && <Calendar size={13} style={{ color: active ? 'white' : '#f89919' }} />}
-                  <span>{type}</span>
-                  {active && filteredData.length > 0 && (
-                    <span style={{ marginLeft: 4, background: 'rgba(255,255,255,0.25)', padding: '1px 6px', borderRadius: 9999, fontSize: 11, fontWeight: 700 }}>
-                      {filteredData.length}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {/* ====== CONTENT AREA ====== */}
+      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 20px 80px' }}>
 
-      {/* ========== POLICIES HEADER BAR (เฉพาะโหมดนโยบายองค์กร) ========== */}
-      {viewMode === 'policies' && (
-        <section style={{ maxWidth: 1280, margin: '0 auto', padding: '36px 24px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e9ebee', paddingBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 36, height: 36, background: '#eff6ff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #bfdbfe' }}>
-                <ShieldCheck size={20} style={{ color: '#2563eb' }} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>
-                  ทะเบียนนโยบายและระเบียบปฏิบัติองค์กร
-                </h3>
-                <p style={{ fontSize: 12.5, color: '#64748b', margin: '2px 0 0' }}>
-                  เอกสารมาตรฐานและการกำกับดูแลสำหรับพนักงานในเครือ ASCG Group
-                </p>
-              </div>
+        {/* Filter / Policy Header */}
+        {viewMode === 'news' ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {newsCategories.map((type) => {
+                const active = filter === type;
+                return (
+                  <button
+                    key={type}
+                    onClick={() => setFilter(type)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '7px 18px', borderRadius: 999, fontSize: 13, fontWeight: active ? 600 : 500,
+                      border: `1.5px solid ${active ? '#f89919' : '#e5e7eb'}`,
+                      background: active ? '#f89919' : '#ffffff',
+                      color: active ? '#ffffff' : '#6b7280',
+                      cursor: 'pointer', transition: 'all 0.15s',
+                      boxShadow: active ? '0 3px 12px rgba(248,153,25,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
+                    }}
+                    onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = '#f89919'; e.currentTarget.style.color = '#c2690a'; } }}
+                    onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280'; } }}
+                  >
+                    {type === 'ประกาศสำคัญ' && <Megaphone size={12} style={{ color: active ? 'white' : '#dc2626' }} />}
+                    {type === 'กิจกรรม' && <Calendar size={12} style={{ color: active ? 'white' : '#f89919' }} />}
+                    {type === 'ทั้งหมด' && <LayoutGrid size={12} style={{ color: active ? 'white' : '#6b7280' }} />}
+                    {type}
+                    {active && filteredData.length > 0 && (
+                      <span style={{ marginLeft: 2, background: 'rgba(255,255,255,0.28)', padding: '0 5px', borderRadius: 999, fontSize: 11, fontWeight: 700 }}>
+                        {filteredData.length}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#1d4ed8', background: '#eff6ff', padding: '4px 12px', borderRadius: 99, border: '1px solid #bfdbfe' }}>
-              ทั้งหมด {filteredData.length} นโยบาย
+            <span style={{ fontSize: 12.5, color: '#9ca3af', fontWeight: 500 }}>
+              {filteredData.length > 0 ? `${filteredData.length} รายการ` : ''}
             </span>
           </div>
-        </section>
-      )}
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #e5e7eb', paddingBottom: 16, marginBottom: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg, #1e3a8a, #2563eb)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}>
+                <ShieldCheck size={20} style={{ color: 'white' }} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>ทะเบียนนโยบายและระเบียบปฏิบัติองค์กร</h3>
+                <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>เอกสารมาตรฐานสำหรับบุคลากรในเครือ ASCG Group</p>
+              </div>
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#2563eb', background: '#eff6ff', padding: '4px 12px', borderRadius: 999, border: '1px solid #bfdbfe' }}>
+              {filteredData.length} นโยบาย
+            </span>
+          </div>
+        )}
 
-      {/* ========== CARDS GRID ========== */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 80px' }}>
+        {/* Cards */}
         {isLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '100px 0', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid #e9ebee', borderTopColor: viewMode === 'policies' ? '#2563eb' : '#f89919', animation: 'spin 0.8s linear infinite' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', border: '3px solid #e5e7eb', borderTopColor: viewMode === 'policies' ? '#2563eb' : '#f89919', animation: 'spin 0.8s linear infinite' }} />
             <p style={{ fontSize: 13, color: '#9ca3af', fontWeight: 500 }}>กำลังโหลดข้อมูล...</p>
           </div>
         ) : currentItems.length > 0 ? (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
               {currentItems.map((item, idx) => {
                 const badge = getBadgeStyle(item.type);
                 const isPolicyItem = item.type === 'นโยบายองค์กร';
@@ -438,26 +433,26 @@ export default function AnnouncementPage() {
                     className="animate-fade-up"
                     style={{
                       background: '#ffffff', borderRadius: 16,
-                      border: '1px solid #e9ebee',
-                      boxShadow: '0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04)',
+                      border: '1px solid rgba(0,0,0,0.06)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                       display: 'flex', flexDirection: 'column',
                       cursor: 'pointer', overflow: 'hidden',
-                      transition: 'all 0.2s ease',
-                      animationDelay: `${idx * 40}ms`,
+                      transition: 'all 0.22s ease',
+                      animationDelay: `${idx * 35}ms`,
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.transform = 'translateY(-3px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.06)';
-                      e.currentTarget.style.borderColor = isPolicyItem ? '#93c5fd' : '#f8d998';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 12px 36px rgba(0,0,0,0.1)';
+                      e.currentTarget.style.borderColor = isPolicyItem ? '#bfdbfe' : '#fed7aa';
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04)';
-                      e.currentTarget.style.borderColor = '#e9ebee';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                      e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)';
                     }}
                   >
                     {/* Cover */}
-                    <div style={{ aspectRatio: '16/9', position: 'relative', overflow: 'hidden', background: isPolicyItem ? '#f0f7ff' : '#f4f5f7' }}>
+                    <div style={{ aspectRatio: '16/9', position: 'relative', overflow: 'hidden', background: isPolicyItem ? '#f0f7ff' : '#fafaf8', flexShrink: 0 }}>
                       {item.cover_image ? (
                         <img
                           src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${item.cover_image}`}
@@ -467,60 +462,54 @@ export default function AnnouncementPage() {
                       ) : (
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <div style={{
-                            width: 56, height: 56, borderRadius: 16,
-                            background: isPolicyItem ? '#eff6ff' : '#fff7ed',
+                            width: 54, height: 54, borderRadius: 15,
+                            background: isPolicyItem ? 'linear-gradient(135deg, #dbeafe, #eff6ff)' : 'linear-gradient(135deg, #ffedd5, #fff7ed)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            border: isPolicyItem ? '1px solid #dbeafe' : '1px solid #ffedd5'
+                            border: isPolicyItem ? '1px solid #bfdbfe' : '1px solid #fed7aa',
+                            boxShadow: isPolicyItem ? '0 4px 12px rgba(37,99,235,0.12)' : '0 4px 12px rgba(248,153,25,0.12)',
                           }}>
-                            {isPolicyItem ? (
-                              <ShieldCheck size={30} style={{ color: '#2563eb' }} />
-                            ) : (
-                              <Megaphone size={26} style={{ color: '#f89919' }} />
-                            )}
+                            {isPolicyItem ? <ShieldCheck size={28} style={{ color: '#2563eb' }} /> : <Megaphone size={24} style={{ color: '#f89919' }} />}
                           </div>
                         </div>
                       )}
-                      
-                      {/* Badge */}
                       <div style={{
-                        position: 'absolute', top: 12, left: 12,
+                        position: 'absolute', top: 10, left: 10,
                         display: 'flex', alignItems: 'center', gap: 5,
-                        background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)',
+                        background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(8px)',
                         border: `1px solid ${badge.border}`,
-                        padding: '4px 10px', borderRadius: 9999,
-                        fontSize: 11, fontWeight: 600, color: badge.text,
+                        padding: '3px 9px', borderRadius: 999,
+                        fontSize: 10.5, fontWeight: 600, color: badge.text,
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                       }}>
                         {badge.icon} {item.type}
                       </div>
                     </div>
 
                     {/* Content */}
-                    <div style={{ padding: '18px 20px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#9ca3af', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                        <Clock size={10} />
-                        {new Date(item.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
+                    <div style={{ padding: '16px 18px 18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: '#94a3b8', fontWeight: 500, marginBottom: 8 }}>
+                        <Clock size={10} /> {formatDate(item.created_at)}
                       </div>
                       <h3 style={{
-                        fontSize: 15, fontWeight: 650, color: '#111827', marginBottom: 8,
-                        lineHeight: 1.4, letterSpacing: '-0.01em',
+                        fontSize: 14.5, fontWeight: 650, color: '#111827', marginBottom: 7,
+                        lineHeight: 1.45, letterSpacing: '-0.01em',
                         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                        transition: 'color 0.15s',
                       }}>
                         {item.title}
                       </h3>
                       <p style={{
-                        fontSize: 13, color: '#6b7280', lineHeight: 1.65, flex: 1, marginBottom: 16,
+                        fontSize: 12.5, color: '#64748b', lineHeight: 1.65, flex: 1, marginBottom: 14,
                         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                       }}>
                         {item.content}
                       </p>
                       <div style={{
-                        paddingTop: 14, borderTop: '1px solid #f0f2f5', display: 'flex', alignItems: 'center', gap: 5,
-                        fontSize: 13, fontWeight: 600,
-                        color: isPolicyItem ? '#2563eb' : '#f89919'
+                        paddingTop: 12, borderTop: '1px solid #f1f5f9',
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        fontSize: 12.5, fontWeight: 600,
+                        color: isPolicyItem ? '#2563eb' : '#f89919',
                       }}>
-                        <span>{isPolicyItem ? 'อ่านระเบียบปฏิบัติ' : 'อ่านเพิ่มเติม'}</span>
-                        <ArrowRight size={13} />
+                        {isPolicyItem ? 'อ่านระเบียบปฏิบัติ' : 'อ่านเพิ่มเติม'} <ArrowRight size={12} />
                       </div>
                     </div>
                   </article>
@@ -530,18 +519,19 @@ export default function AnnouncementPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div style={{ marginTop: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <div style={{ marginTop: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   style={{
-                    padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 500,
-                    background: 'white', border: '1px solid #e9ebee', color: '#4b5563',
-                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.4 : 1,
-                    transition: 'all 0.15s',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 500,
+                    background: 'white', border: '1px solid #e5e7eb', color: '#374151',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.35 : 1,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                   }}
                 >
-                  ← ก่อนหน้า
+                  <ChevronLeft size={14} /> ก่อนหน้า
                 </button>
                 <div style={{ display: 'flex', gap: 4 }}>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -549,12 +539,12 @@ export default function AnnouncementPage() {
                       key={page}
                       onClick={() => setCurrentPage(page)}
                       style={{
-                        width: 38, height: 38, borderRadius: 10, fontSize: 13, fontWeight: 600,
+                        width: 36, height: 36, borderRadius: 10, fontSize: 13, fontWeight: 600,
                         background: currentPage === page ? (viewMode === 'policies' ? '#2563eb' : '#f89919') : 'white',
-                        color: currentPage === page ? 'white' : '#4b5563',
-                        border: `1px solid ${currentPage === page ? (viewMode === 'policies' ? '#2563eb' : '#f89919') : '#e9ebee'}`,
+                        color: currentPage === page ? 'white' : '#374151',
+                        border: `1px solid ${currentPage === page ? (viewMode === 'policies' ? '#2563eb' : '#f89919') : '#e5e7eb'}`,
                         cursor: 'pointer', transition: 'all 0.15s',
-                        boxShadow: currentPage === page ? (viewMode === 'policies' ? '0 2px 8px rgba(37,99,235,0.3)' : '0 2px 8px rgba(248,153,25,0.3)') : 'none',
+                        boxShadow: currentPage === page ? (viewMode === 'policies' ? '0 2px 10px rgba(37,99,235,0.35)' : '0 2px 10px rgba(248,153,25,0.35)') : '0 1px 3px rgba(0,0,0,0.04)',
                       }}
                     >
                       {page}
@@ -562,138 +552,139 @@ export default function AnnouncementPage() {
                   ))}
                 </div>
                 <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   style={{
-                    padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 500,
-                    background: 'white', border: '1px solid #e9ebee', color: '#4b5563',
-                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.4 : 1,
-                    transition: 'all 0.15s',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 500,
+                    background: 'white', border: '1px solid #e5e7eb', color: '#374151',
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.35 : 1,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                   }}
                 >
-                  ถัดไป →
+                  ถัดไป <ChevronRight size={14} />
                 </button>
               </div>
             )}
           </>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '90px 0' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
             <div style={{
-              width: 72, height: 72, borderRadius: 20,
-              background: viewMode === 'policies' ? '#eff6ff' : '#fff7ed',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16
+              width: 76, height: 76, borderRadius: 22,
+              background: viewMode === 'policies' ? 'linear-gradient(135deg, #dbeafe, #eff6ff)' : 'linear-gradient(135deg, #ffedd5, #fff7ed)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18,
+              boxShadow: viewMode === 'policies' ? '0 8px 24px rgba(37,99,235,0.15)' : '0 8px 24px rgba(248,153,25,0.15)',
             }}>
-              {viewMode === 'policies' ? (
-                <ShieldCheck size={36} style={{ color: '#2563eb' }} />
-              ) : (
-                <Megaphone size={32} style={{ color: '#f89919' }} />
-              )}
+              {viewMode === 'policies' ? <ShieldCheck size={38} style={{ color: '#2563eb' }} /> : <Megaphone size={34} style={{ color: '#f89919' }} />}
             </div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1f2937', marginBottom: 6 }}>
-              {searchTerm ? `ไม่พบผลลัพธ์สำหรับ "${searchTerm}"` : (viewMode === 'policies' ? 'ยังไม่มีเอกสารนโยบายในขณะนี้' : `ยังไม่มีข้อมูลในหมวดหมู่นี้`)}
+              {searchTerm ? `ไม่พบผลลัพธ์สำหรับ "${searchTerm}"` : (viewMode === 'policies' ? 'ยังไม่มีเอกสารนโยบาย' : 'ยังไม่มีข้อมูลในหมวดหมู่นี้')}
             </h3>
             <p style={{ fontSize: 13, color: '#9ca3af' }}>
-              {viewMode === 'policies' ? 'นโยบายและระเบียบปฏิบัติใหม่จะแสดงที่นี่เมื่อมีการเผยแพร่' : 'ประกาศและข่าวสารใหม่จะแสดงที่นี่เมื่อมีการอัปเดต'}
+              {viewMode === 'policies' ? 'นโยบายใหม่จะแสดงที่นี่เมื่อมีการเผยแพร่' : 'ประกาศใหม่จะแสดงที่นี่เมื่อมีการอัปเดต'}
             </p>
           </div>
         )}
       </section>
 
-      {/* ========== MODAL ========== */}
+      {/* ====== MODAL ====== */}
       {selectedAnnouncement && (() => {
         const badge = getBadgeStyle(selectedAnnouncement.type);
         const isPolicyModal = selectedAnnouncement.type === 'นโยบายองค์กร';
         return (
           <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
             <div
-              style={{ position: 'absolute', inset: 0, background: 'rgba(10,8,5,0.65)', backdropFilter: 'blur(6px)' }}
+              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(8px)' }}
               onClick={() => setSelectedAnnouncement(null)}
             />
             <div className="animate-scale-in" style={{
-              position: 'relative', background: 'white', borderRadius: 20,
-              boxShadow: '0 32px 80px rgba(0,0,0,0.2)',
-              width: '100%', maxWidth: 720, maxHeight: '90vh',
+              position: 'relative', background: 'white', borderRadius: 22,
+              boxShadow: '0 40px 100px rgba(0,0,0,0.25)',
+              width: '100%', maxWidth: 700, maxHeight: '90vh',
               display: 'flex', flexDirection: 'column', overflow: 'hidden',
-              border: '1px solid #e9ebee',
+              border: '1px solid rgba(0,0,0,0.06)',
             }}>
               {/* Cover */}
               <div style={{ position: 'relative', flexShrink: 0 }}>
                 {selectedAnnouncement.cover_image ? (
-                  <div style={{ width: '100%', height: 240 }}>
+                  <div style={{ width: '100%', height: 230 }}>
                     <img
                       src={`${import.meta.env.VITE_API_BASE_URL}/uploads/announcements/${selectedAnnouncement.cover_image}`}
                       alt={selectedAnnouncement.title}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.35), transparent)' }} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.4), transparent 60%)' }} />
                   </div>
                 ) : (
                   <div style={{
-                    width: '100%', height: 110,
-                    background: isPolicyModal ? 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)' : '#1c1917',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    width: '100%', height: 100,
+                    background: isPolicyModal
+                      ? 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)'
+                      : 'linear-gradient(135deg, #1c1917 0%, #292524 100%)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    {isPolicyModal ? (
-                      <ShieldCheck size={48} style={{ color: 'rgba(255,255,255,0.4)' }} />
-                    ) : (
-                      <Megaphone size={40} style={{ color: 'rgba(255,255,255,0.2)' }} />
-                    )}
+                    {isPolicyModal
+                      ? <ShieldCheck size={44} style={{ color: 'rgba(255,255,255,0.28)' }} />
+                      : <Megaphone size={38} style={{ color: 'rgba(255,255,255,0.18)' }} />
+                    }
                   </div>
                 )}
                 <button
                   onClick={() => setSelectedAnnouncement(null)}
                   style={{
                     position: 'absolute', top: 14, right: 14,
-                    width: 34, height: 34, borderRadius: 9, border: '1px solid #e9ebee',
-                    background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)',
+                    width: 36, height: 36, borderRadius: 10,
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', color: '#374151', transition: 'all 0.15s',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    cursor: 'pointer', color: '#374151',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.12)', transition: 'all 0.15s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#111827'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.transform = 'scale(1.08)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.92)'; e.currentTarget.style.transform = 'scale(1)'; }}
                 >
-                  <X size={16} />
+                  <X size={15} />
                 </button>
               </div>
 
               {/* Body */}
-              <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+              <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '26px 30px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                   <span style={{
-                    display: 'flex', alignItems: 'center', gap: 5,
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
                     background: badge.bg, color: badge.text, border: `1px solid ${badge.border}`,
-                    padding: '4px 12px', borderRadius: 9999, fontSize: 11, fontWeight: 600,
+                    padding: '4px 11px', borderRadius: 999, fontSize: 11, fontWeight: 600,
                   }}>
                     {badge.icon} {selectedAnnouncement.type}
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#9ca3af' }}>
-                    <Clock size={11} />
-                    {new Date(selectedAnnouncement.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#94a3b8' }}>
+                    <Clock size={11} /> {formatDate(selectedAnnouncement.created_at)}
                   </span>
                 </div>
-                <h2 style={{ fontSize: 22, fontWeight: 750, color: '#111827', lineHeight: 1.3, letterSpacing: '-0.03em', marginBottom: 20 }}>
+                <h2 style={{ fontSize: 'clamp(18px, 3vw, 22px)', fontWeight: 750, color: '#0f172a', lineHeight: 1.3, letterSpacing: '-0.03em', marginBottom: 20 }}>
                   {selectedAnnouncement.title}
                 </h2>
-                <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.85, whiteSpace: 'pre-wrap' }}>
+                <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.9, whiteSpace: 'pre-wrap' }}>
                   {selectedAnnouncement.content}
                 </div>
               </div>
 
               {/* Footer */}
-              <div style={{ flexShrink: 0, padding: '16px 32px', borderTop: '1px solid #f0f2f5', background: '#fafbfc', display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ flexShrink: 0, padding: '14px 30px', borderTop: '1px solid #f1f5f9', background: '#fafbfc', display: 'flex', justifyContent: 'flex-end' }}>
                 <button
                   onClick={() => setSelectedAnnouncement(null)}
                   style={{
                     padding: '9px 22px',
-                    background: isPolicyModal ? '#2563eb' : '#f89919',
-                    color: 'white',
-                    border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600,
-                    cursor: 'pointer', transition: 'all 0.15s',
-                    boxShadow: isPolicyModal ? '0 2px 8px rgba(37,99,235,0.3)' : '0 2px 8px rgba(248,153,25,0.3)',
+                    background: isPolicyModal
+                      ? 'linear-gradient(135deg, #1d4ed8, #2563eb)'
+                      : 'linear-gradient(135deg, #e8860a, #f89919)',
+                    color: 'white', border: 'none', borderRadius: 10,
+                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    boxShadow: isPolicyModal ? '0 3px 12px rgba(37,99,235,0.35)' : '0 3px 12px rgba(248,153,25,0.35)',
+                    transition: 'all 0.15s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = isPolicyModal ? '#1d4ed8' : '#e8860a'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = isPolicyModal ? '#2563eb' : '#f89919'; }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                 >
                   ปิดหน้าต่าง
                 </button>
@@ -705,6 +696,10 @@ export default function AnnouncementPage() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
       `}</style>
     </div>
   );
