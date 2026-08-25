@@ -97,6 +97,25 @@ exports.createEmployee = async (req, res) => {
       await getOrCreatePosition(connection, data.position);
     }
 
+    let empCode = data.employeeCode;
+    if (!empCode && data.companyPrefix) {
+      const currentYear = (new Date().getFullYear() + 543).toString().slice(-2);
+      const searchPattern = `${data.companyPrefix}${currentYear}%`;
+      const [rows] = await connection.query(
+        `SELECT employee_code FROM employees WHERE company_prefix = ? AND employee_code LIKE ? ORDER BY employee_code DESC LIMIT 1`,
+        [data.companyPrefix, searchPattern]
+      );
+      let nextNumber = 1;
+      if (rows.length > 0) {
+        const lastCode = rows[0].employee_code;
+        const prefixWithYear = `${data.companyPrefix}${currentYear}`;
+        const lastNumberStr = lastCode.replace(prefixWithYear, '');
+        const lastNumber = parseInt(lastNumberStr, 10);
+        if (!isNaN(lastNumber)) nextNumber = lastNumber + 1;
+      }
+      empCode = `${data.companyPrefix}${currentYear}${String(nextNumber).padStart(3, '0')}`;
+    }
+
     const [empResult] = await connection.execute(
       `INSERT INTO employees (
         company_prefix, employee_code, email, use_domain, position, 
@@ -105,7 +124,7 @@ exports.createEmployee = async (req, res) => {
         mobile, start_date, status
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        data.companyPrefix || null, data.employeeCode || null, data.email || null, data.useDomain ? 1 : 0, data.position || null, 
+        data.companyPrefix || null, empCode || null, data.email || null, data.useDomain ? 1 : 0, data.position || null, 
         finalDeptId || null, data.roleId || 3,
         data.titleThai || null, data.firstName || null, data.lastName || null, data.titleEnglish || null, data.englishFirstName || null, data.englishLastName || null, data.nickname || null,
         data.mobile || null, data.startDate || null, data.status || 'Active'
@@ -115,7 +134,7 @@ exports.createEmployee = async (req, res) => {
     const employeeId = empResult.insertId;
 
     await connection.commit();
-    res.status(201).json({ status: 'success', message: 'บันทึกข้อมูลสำเร็จ', employeeId: employeeId });
+    res.status(201).json({ status: 'success', message: 'บันทึกข้อมูลสำเร็จ', employeeId: employeeId, employeeCode: empCode });
 
   } catch (error) {
     await connection.rollback();
