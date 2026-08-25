@@ -341,12 +341,15 @@ export default function EmployeeListPage() {
                           💻 {employee.asset_count || 0} เครื่อง
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap shadow-xs ${
                           employee.status === 'Active' 
-                            ? 'bg-emerald-100 text-emerald-700' 
-                            : 'bg-rose-100 text-rose-700'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                            : 'bg-rose-50 text-rose-700 border border-rose-200'
                         }`}>
+                          <span className={`w-2 h-2 rounded-full ${
+                            employee.status === 'Active' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+                          }`} />
                           {employee.status === 'Active' ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
                         </span>
                       </td>
@@ -424,7 +427,7 @@ export default function EmployeeListPage() {
                       onClick={() => setCurrentPage(page)}
                       className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors ${
                         currentPage === page
-                          ? 'bg-indigo-600 text-white shadow-sm'
+                          ? 'bg-[#f89919] text-white shadow-sm font-bold'
                           : 'hover:bg-slate-100 text-slate-600'
                       }`}
                     >
@@ -450,7 +453,7 @@ export default function EmployeeListPage() {
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <CalendarRange size={20} className="text-indigo-600" />
+                  <CalendarRange size={20} className="text-[#f89919]" />
                   จัดการโควต้าวันลา
                 </h3>
                 <button onClick={() => setShowLeaveModal(false)} className="text-slate-400 hover:text-slate-600 hover:bg-slate-200 p-1 rounded-full transition-colors">
