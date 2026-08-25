@@ -139,12 +139,8 @@ exports.createLeaveRequest = async (req, res) => {
   const attachment = req.file ? req.file.filename : null;
 
   try {
-    // get manager_id
-    const [empRows] = await pool.query('SELECT manager_id FROM employees WHERE id = ?', [employeeId]);
-    const managerId = empRows[0]?.manager_id;
-    
-    // Auto-approve manager step if no manager
-    const initialStatus = managerId ? 'Pending Manager' : 'Pending HR';
+    const managerId = null;
+    const initialStatus = 'Pending HR';
 
     const [result] = await pool.query(`
       INSERT INTO leave_requests (employee_id, leave_type_id, start_date, end_date, duration_type, total_days, reason, attachment, status, manager_id)

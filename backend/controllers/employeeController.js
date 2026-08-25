@@ -93,7 +93,6 @@ exports.createEmployee = async (req, res) => {
       finalDeptId = await getOrCreateDepartment(connection, data.departmentName);
     }
 
-    // Create position if it doesn't exist
     if (data.position) {
       await getOrCreatePosition(connection, data.position);
     }
@@ -101,13 +100,13 @@ exports.createEmployee = async (req, res) => {
     const [empResult] = await connection.execute(
       `INSERT INTO employees (
         company_prefix, employee_code, email, use_domain, position, 
-        department_id, role_id, manager_id,
+        department_id, role_id,
         title_th, first_name_th, last_name_th, title_en, first_name_en, last_name_en, nickname,
         mobile, start_date, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.companyPrefix || null, data.employeeCode || null, data.email || null, data.useDomain ? 1 : 0, data.position || null, 
-        finalDeptId || null, data.roleId || 3, data.managerId || null,
+        finalDeptId || null, data.roleId || 3,
         data.titleThai || null, data.firstName || null, data.lastName || null, data.titleEnglish || null, data.englishFirstName || null, data.englishLastName || null, data.nickname || null,
         data.mobile || null, data.startDate || null, data.status || 'Active'
       ]
@@ -135,7 +134,7 @@ exports.getAllEmployees = async (req, res) => {
         e.id, e.company_prefix, e.employee_code, 
         CONCAT(COALESCE(e.title_th,''), e.first_name_th, ' ', e.last_name_th) AS full_name_th,
         e.first_name_th, e.last_name_th, e.nickname, e.email, 
-        COALESCE(e.mobile, e.home_phone) AS phone,
+        e.mobile AS phone,
         e.position, e.department_id, d.name AS department_name, e.status, e.start_date, e.created_at, e.role_id, e.profile_image,
         r.name AS role_name,
         (SELECT COUNT(*) FROM assets a WHERE a.assigned_to = e.id OR a.assigned_to = e.employee_code) AS asset_count
@@ -189,8 +188,6 @@ exports.getEmployeeById = async (req, res) => {
   }
 };
 
-
-
 // ==========================================
 // ฟังก์ชันดึงรายชื่อบริษัททั้งหมด (GET /api/companies)
 // ==========================================
@@ -228,22 +225,16 @@ exports.updateEmployee = async (req, res) => {
 
     await pool.execute(
       `UPDATE employees SET 
-        company_prefix = ?, employee_code = ?, position = ?, department_id = ?, role_id = ?, manager_id = ?, email = ?, use_domain = ?,
+        company_prefix = ?, employee_code = ?, position = ?, department_id = ?, role_id = ?, email = ?, use_domain = ?,
         title_th = ?, first_name_th = ?, last_name_th = ?, 
         title_en = ?, first_name_en = ?, last_name_en = ?, nickname = ?,
-        date_of_birth = ?, national_id = ?, height = ?, weight = ?, 
-        blood_group = ?, religion = ?, marital_status = ?, military_status = ?,
-        mobile = ?, home_phone = ?, personal_email = ?, home_address = ?, current_address = ?,
-        status = ?, resignation_date = ?, start_date = ?
+        mobile = ?, status = ?, resignation_date = ?, start_date = ?
       WHERE id = ?`,
       [
-        data.companyPrefix || null, data.employeeCode || null, data.position || null, finalDeptId || null, data.roleId || null, data.managerId || null, data.email || null, data.useDomain ? 1 : 0,
+        data.companyPrefix || null, data.employeeCode || null, data.position || null, finalDeptId || null, data.roleId || null, data.email || null, data.useDomain ? 1 : 0,
         data.titleThai || null, data.firstName || null, data.lastName || null, 
         data.titleEnglish || null, data.englishFirstName || null, data.englishLastName || null, data.nickname || null,
-        data.dateOfBirth || null, data.nationalId || null, data.height || null, data.weight || null, 
-        data.bloodGroup || null, data.religion || null, data.maritalStatus || null, data.militaryStatus || null,
-        data.mobile || null, data.homePhone || null, data.personalEmail || null, data.homeAddress || null, data.currentAddress || null,
-        data.status || 'Active', data.resignationDate || null, data.startDate || null,
+        data.mobile || null, data.status || 'Active', data.resignationDate || null, data.startDate || null,
         id 
       ]
     );
