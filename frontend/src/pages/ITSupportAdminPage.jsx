@@ -40,6 +40,8 @@ export default function ITSupportAdminPage() {
       case 'รอรับเรื่อง': return 'bg-orange-100 text-orange-700 border-orange-200';
       case 'กำลังดำเนินการ': return 'bg-indigo-100 text-indigo-700 border-blue-200';
       case 'แก้ไขเสร็จสิ้น': return 'bg-green-100 text-green-700 border-green-200';
+      case 'ยกเลิก':
+      case 'ยกเลิกรายการ': return 'bg-red-100 text-red-700 border-red-200';
       default: return 'bg-slate-100 text-slate-700 border-slate-200';
     }
   };
@@ -191,7 +193,8 @@ export default function ITSupportAdminPage() {
   const stats = {
     total: filteredTickets.length,
     completed: filteredTickets.filter(t => t.status === 'แก้ไขเสร็จสิ้น').length,
-    pending: filteredTickets.filter(t => t.status === 'รอรับเรื่อง' || t.status === 'กำลังดำเนินการ').length
+    pending: filteredTickets.filter(t => t.status === 'รอรับเรื่อง' || t.status === 'กำลังดำเนินการ').length,
+    cancelled: filteredTickets.filter(t => t.status === 'ยกเลิก' || t.status === 'ยกเลิกรายการ').length
   };
 
   return (
@@ -339,18 +342,22 @@ export default function ITSupportAdminPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-6 mb-10">
-          <div className="border border-slate-300 rounded-lg p-5 text-center bg-slate-50">
-            <div className="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2">เคสทั้งหมด</div>
-            <div className="text-4xl font-black text-slate-900">{stats.total}</div>
+        <div className="grid grid-cols-4 gap-4 mb-10">
+          <div className="border border-slate-300 rounded-lg p-4 text-center bg-slate-50">
+            <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">เคสทั้งหมด</div>
+            <div className="text-3xl font-black text-slate-900">{stats.total}</div>
           </div>
-          <div className="border border-green-300 rounded-lg p-5 text-center bg-green-50">
-            <div className="text-green-700 text-sm font-bold uppercase tracking-wider mb-2">แก้ไขเสร็จสิ้น</div>
-            <div className="text-4xl font-black text-green-700">{stats.completed}</div>
+          <div className="border border-green-300 rounded-lg p-4 text-center bg-green-50">
+            <div className="text-green-700 text-xs font-bold uppercase tracking-wider mb-1">แก้ไขเสร็จสิ้น</div>
+            <div className="text-3xl font-black text-green-700">{stats.completed}</div>
           </div>
-          <div className="border border-orange-300 rounded-lg p-5 text-center bg-orange-50">
-            <div className="text-orange-700 text-sm font-bold uppercase tracking-wider mb-2">กำลังดำเนินการ / รอรับเรื่อง</div>
-            <div className="text-4xl font-black text-orange-700">{stats.pending}</div>
+          <div className="border border-orange-300 rounded-lg p-4 text-center bg-orange-50">
+            <div className="text-orange-700 text-xs font-bold uppercase tracking-wider mb-1">กำลังดำเนินการ / รอรับเรื่อง</div>
+            <div className="text-3xl font-black text-orange-700">{stats.pending}</div>
+          </div>
+          <div className="border border-rose-300 rounded-lg p-4 text-center bg-rose-50">
+            <div className="text-rose-700 text-xs font-bold uppercase tracking-wider mb-1">ยกเลิกรายการ</div>
+            <div className="text-3xl font-black text-rose-700">{stats.cancelled}</div>
           </div>
         </div>
 
@@ -381,8 +388,13 @@ export default function ITSupportAdminPage() {
                 </td>
                 <td className="py-3 px-2 text-slate-700">{ticket.category}</td>
                 <td className="py-3 px-2">
-                  <span className={`font-bold ${ticket.status === 'แก้ไขเสร็จสิ้น' ? 'text-green-600' : 'text-orange-500'}`}>
-                    {ticket.status}
+                  <span className={`font-bold ${
+                    ticket.status === 'แก้ไขเสร็จสิ้น' ? 'text-green-600' :
+                    ticket.status === 'กำลังดำเนินการ' ? 'text-blue-600' :
+                    (ticket.status === 'ยกเลิก' || ticket.status === 'ยกเลิกรายการ') ? 'text-rose-600' :
+                    'text-orange-500'
+                  }`}>
+                    {ticket.status || 'รอรับเรื่อง'}
                   </span>
                 </td>
               </tr>
