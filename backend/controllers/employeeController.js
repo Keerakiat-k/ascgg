@@ -121,7 +121,7 @@ exports.createEmployee = async (req, res) => {
   } catch (error) {
     await connection.rollback();
     console.error('Database Error:', error);
-    res.status(500).json({ status: 'error', message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
+    res.status(500).json({ status: 'error', message: error.sqlMessage || error.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
   } finally {
     connection.release();
   }
