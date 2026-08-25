@@ -5,7 +5,7 @@ import {
   ArrowRightLeft, Wrench, RotateCcw, Eye, Download, Printer, RefreshCw,
   CheckCircle2, Clock, Shield, Laptop, Monitor, Server, HardDrive, 
   Building2, MapPin, Tag, UserCheck, Calendar, DollarSign, X, Check,
-  Copy, Cpu, FileText, Layers, Sparkles
+  Copy, Cpu, FileText, Layers, Sparkles, Archive
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import ExcelJS from 'exceljs';
@@ -479,6 +479,49 @@ export default function AssetAdminPage() {
         fetchAssets();
       } else {
         throw new Error(result.message);
+      }
+    } catch (error) {
+      Swal.fire('ผิดพลาด', error.message, 'error');
+    }
+  };
+
+  // Retire Asset (ปลดระวางทรัพย์สิน)
+  const handleRetireAsset = async (asset) => {
+    const confirm = await Swal.fire({
+      title: `ยืนยันปลดระวาง [${asset.asset_code}]?`,
+      text: `ทรัพย์สิน "${asset.name}" จะถูกปรับสถานะเป็น '⚪️ ปลดระวาง (Retired)' และนำออกจากผู้ถือครอง`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'ยืนยันปลดระวาง',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#64748b'
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/assets/${asset.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...asset,
+          status: 'Retired',
+          assigned_to: null,
+          location: asset.location || 'คลังปลดระวาง / จำหน่ายออก'
+        })
+      });
+      const result = await res.json();
+      if (res.ok && result.status === 'success') {
+        Swal.fire({
+          title: 'ปลดระวางสำเร็จ',
+          text: `ปรับสถานะ [${asset.asset_code}] เป็น 'ปลดระวาง' เรียบร้อยแล้ว`,
+          icon: 'success',
+          timer: 1800,
+          showConfirmButton: false
+        });
+        fetchAssets();
+      } else {
+        throw new Error(result.message || 'เกิดข้อผิดพลาด');
       }
     } catch (error) {
       Swal.fire('ผิดพลาด', error.message, 'error');
@@ -1111,6 +1154,17 @@ export default function AssetAdminPage() {
                             <Edit size={14} />
                           </button>
 
+                          {/* Retire / ปลดระวาง */}
+                          {asset.status !== 'Retired' && (
+                            <button
+                              onClick={() => handleRetireAsset(asset)}
+                              className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-800 rounded-lg transition-colors"
+                              title="ปลดระวางทรัพย์สิน (Retire)"
+                            >
+                              <Archive size={14} />
+                            </button>
+                          )}
+
                           {/* Delete */}
                           <button
                             onClick={() => handleDeleteAsset(asset)}
@@ -1230,6 +1284,15 @@ export default function AssetAdminPage() {
                       >
                         <Edit size={15} />
                       </button>
+                      {asset.status !== 'Retired' && (
+                        <button
+                          onClick={() => handleRetireAsset(asset)}
+                          className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-800 rounded-lg transition-colors"
+                          title="ปลดระวางทรัพย์สิน (Retire)"
+                        >
+                          <Archive size={15} />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDeleteAsset(asset)}
                         className="p-1.5 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
@@ -1330,7 +1393,7 @@ export default function AssetAdminPage() {
                   <span>1. สังกัดบริษัทและรหัสทรัพย์สิน (Company & Asset Code)</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   
                   {/* Company */}
                   <div>
@@ -1405,6 +1468,23 @@ export default function AssetAdminPage() {
                       <option value="Access Point">Access Point / Wi-Fi</option>
                       <option value="CCTV">CCTV / Recorder (DVR/NVR)</option>
                       <option value="Others">อื่นๆ (Others)</option>
+                    </select>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">สถานะทรัพย์สิน (Status) *</label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                      className="input-base text-xs py-2 bg-white font-semibold"
+                      required
+                    >
+                      <option value="Available">🟢 พร้อมใช้งาน (ในคลัง)</option>
+                      <option value="In Use">🔵 กำลังใช้งาน (มีผู้ถือครอง)</option>
+                      <option value="On Loan">🟣 ยืมใช้งานชั่วคราว</option>
+                      <option value="Maintenance">🟡 ส่งซ่อม / อัปเกรด</option>
+                      <option value="Retired">⚪️ ปลดระวาง (Retired)</option>
                     </select>
                   </div>
 
