@@ -60,6 +60,7 @@ export default function AssetAdminPage() {
 
   const [activeAsset, setActiveAsset] = useState(null);
   const [assetDetail, setAssetDetail] = useState(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
 

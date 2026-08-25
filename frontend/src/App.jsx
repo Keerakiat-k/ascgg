@@ -65,7 +65,8 @@ export default function App() {
           <Route path="/settings/email-templates" element={<ProtectedRoute requiredPermission="manage_settings"><EmailTemplatesPage /></ProtectedRoute>} />
           
           {/* Redirect disabled leave routes to dashboard */}
-          <Route path="/leave*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/leave" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/leave/*" element={<Navigate to="/dashboard" replace />} />
           <Route path="/settings/leave" element={<Navigate to="/dashboard" replace />} />
           
         </Route>
