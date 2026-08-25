@@ -358,22 +358,13 @@ export default function EmployeeListPage() {
                         <div className="flex justify-end gap-1">
                           
                           {isAdmin && (
-                            <>
-                              <button 
-                                onClick={() => handleOpenLeaveModal(employee)}
-                                className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                                title="จัดการวันลา"
-                              >
-                                <CalendarRange size={18} />
-                              </button>
-                              <button 
-                                onClick={() => handleSendWelcomeEmail(employee)}
-                                className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                title="ส่งอีเมลต้อนรับผู้ใช้ใหม่"
-                              >
-                                <Mail size={18} />
-                              </button>
-                            </>
+                            <button 
+                              onClick={() => handleSendWelcomeEmail(employee)}
+                              className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                              title="ส่งอีเมลต้อนรับผู้ใช้ใหม่"
+                            >
+                              <Mail size={18} />
+                            </button>
                           )}
 
                           <button 

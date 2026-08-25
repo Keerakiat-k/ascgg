@@ -43,14 +43,10 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/it-support" element={<ITSupportPage />} />
-          <Route path="/leave" element={<LeaveRequestPage />} />
-          <Route path="/leave/approvals" element={<LeaveManagementPage />} />
-
           {/* จัดการพนักงาน */}
           <Route path="/employee-list" element={<ProtectedRoute requiredPermission="manage_employees"><EmployeeListPage /></ProtectedRoute>} />
           <Route path="/employees/new" element={<ProtectedRoute requiredPermission="manage_employees"><AddEmployeePage /></ProtectedRoute>} />
           <Route path="/edit-employee/:id" element={<ProtectedRoute requiredPermission="manage_employees"><EditEmployeePage /></ProtectedRoute>} />
-          <Route path="/leave/history" element={<ProtectedRoute requiredPermission="manage_employees"><LeaveHistoryPage /></ProtectedRoute>} />
           
           {/* จัดการประกาศ */}
           <Route path="/admin/announcements" element={<ProtectedRoute requiredPermission="manage_announcements"><AnnouncementListPage /></ProtectedRoute>} />
@@ -67,7 +63,10 @@ export default function App() {
           {/* Settings */}
           <Route path="/settings" element={<ProtectedRoute requiredPermission="manage_settings"><SystemSettingsPage /></ProtectedRoute>} />
           <Route path="/settings/email-templates" element={<ProtectedRoute requiredPermission="manage_settings"><EmailTemplatesPage /></ProtectedRoute>} />
-          <Route path="/settings/leave" element={<ProtectedRoute requiredPermission="manage_settings"><LeaveSettingsPage /></ProtectedRoute>} />
+          
+          {/* Redirect disabled leave routes to dashboard */}
+          <Route path="/leave*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/settings/leave" element={<Navigate to="/dashboard" replace />} />
           
         </Route>
       </Routes>

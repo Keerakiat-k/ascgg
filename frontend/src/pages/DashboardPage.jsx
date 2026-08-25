@@ -247,21 +247,21 @@ export default function DashboardPage() {
         <div className="relative z-10">
           <div className="text-sm font-medium text-amber-100 mb-1 tracking-wide">ยินดีต้อนรับกลับ</div>
           <h2 className="text-2xl font-bold mb-1" style={{ letterSpacing: '-0.4px' }}>สวัสดี, {userName} 👋</h2>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>ตรวจสอบข้อมูลส่วนตัวหรือวันลาคงเหลือได้ที่นี่</p>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>ระบบสารสนเทศและบริการกลางองค์กร (ASCG Enterprise Hub)</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 stagger">
-        <div className="bg-white p-6 rounded-2xl border border-[#e9ebee] hover:border-orange-200 transition-all group cursor-default" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04)' }}>
+        <div 
+          onClick={() => navigate('/it-support')}
+          className="bg-white p-6 rounded-2xl border border-[#e9ebee] hover:border-orange-200 transition-all group cursor-pointer" 
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04)' }}
+        >
           <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ background: '#fff7ed' }}>
-            <Calendar size={22} style={{ color: '#f89919' }} />
+            <Activity size={22} style={{ color: '#f89919' }} />
           </div>
-          <h3 className="font-semibold text-slate-800 mb-1" style={{ fontSize: 15 }}>วันลาคงเหลือ</h3>
-          <p className="text-slate-500" style={{ fontSize: 13 }}>
-            {myBalances.length > 0
-              ? myBalances.map(b => `${b.leave_type_name} ${b.total_days - b.used_days - b.pending_days} วัน`).join(' | ')
-              : 'ไม่มีข้อมูลวันลา'}
-          </p>
+          <h3 className="font-semibold text-slate-800 mb-1" style={{ fontSize: 15 }}>แจ้งปัญหา IT</h3>
+          <p className="text-slate-500" style={{ fontSize: 13 }}>ส่งคำร้องแจ้งซ่อมอุปกรณ์และระบบไอที</p>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-[#e9ebee] hover:border-orange-200 transition-all group cursor-default" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04)' }}>
           <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ background: '#fdf8f4' }}>
@@ -293,11 +293,10 @@ export default function DashboardPage() {
         <p className="page-subtitle">สถิติและข้อมูลพนักงานประจำเดือน</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 stagger">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 stagger">
         {[
           { label: 'พนักงานทั้งหมด (Active)', value: stats.totalEmployees, icon: Users, color: '#f89919', bgColor: '#fff7ed', accent: '#f89919' },
           { label: 'พนักงานใหม่ (เดือนนี้)', value: stats.newThisMonth, icon: UserPlus, color: '#059669', bgColor: '#ecfdf5', accent: '#10b981' },
-          { label: 'รออนุมัติวันลา', value: pendingLeaveApprovals, icon: Clock, color: '#d97706', bgColor: '#fffbeb', accent: '#f59e0b' },
           { label: 'พนักงานพ้นสภาพ', value: stats.resigned, icon: AlertCircle, color: '#dc2626', bgColor: '#fff1f2', accent: '#f43f5e' },
         ].map((item, i) => (
           <div key={i} className="bg-white rounded-2xl p-5 border border-[#e9ebee] flex items-center gap-4 relative overflow-hidden transition-all hover:shadow-md" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>

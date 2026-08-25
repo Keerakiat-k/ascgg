@@ -517,24 +517,24 @@ export default function AdminLayout() {
     // Admin Mode -> Full Access
     if (userRole === 'Admin') return true;
 
-    // Employee (พนักงานทั่วไป) -> ซ่อนหน้าบริหารจัดการทั้งหมด ให้เห็นเฉพาะ หน้าหลัก, แจ้งปัญหา IT, และ ลางาน
+    // Employee (พนักงานทั่วไป) -> ให้เห็นเฉพาะ หน้าหลัก และ แจ้งปัญหา IT
     if (userRole === 'Employee') {
-      return ['/dashboard', '/it-support', '/leave'].includes(item.path);
+      return ['/dashboard', '/it-support'].includes(item.path);
     }
 
-    // Manager (หัวหน้างาน) -> ซ่อนหน้าบริหารจัดการทั้งหมด ให้เห็นเฉพาะ หน้าหลัก, แจ้งปัญหา IT, ลางาน, และ อนุมัติการลา
+    // Manager (หัวหน้างาน) -> ให้เห็นเฉพาะ หน้าหลัก และ แจ้งปัญหา IT
     if (userRole === 'Manager') {
-      return ['/dashboard', '/it-support', '/leave', '/leave/approvals'].includes(item.path);
+      return ['/dashboard', '/it-support'].includes(item.path);
     }
 
     // HR Mode
     if (userRole === 'HR') {
-      return ['/dashboard', '/it-support', '/leave', '/leave/approvals', '/employee-list', '/employees/new', '/leave/history', '/admin/announcements'].includes(item.path);
+      return ['/dashboard', '/it-support', '/employee-list', '/employees/new', '/admin/announcements'].includes(item.path);
     }
 
     // IT Support Mode
     if (userRole === 'IT Support') {
-      return ['/dashboard', '/it-support', '/leave', '/admin/it-health-check', '/admin/it-support', '/admin/network', '/admin/assets', '/admin/hostings'].includes(item.path);
+      return ['/dashboard', '/it-support', '/admin/it-health-check', '/admin/it-support', '/admin/network', '/admin/assets', '/admin/hostings'].includes(item.path);
     }
 
     if (!item.perm) return true;
@@ -550,18 +550,10 @@ export default function AdminLayout() {
       ]
     },
     {
-      group: 'ระบบลางาน',
-      items: [
-        { path: '/leave', name: 'ลางาน (My Leave)', icon: Calendar },
-        { path: '/leave/approvals', name: 'อนุมัติการลา', icon: ClipboardList },
-      ]
-    },
-    {
       group: 'จัดการผู้ใช้งานระบบ (Users)',
       items: [
         { path: '/employee-list', name: 'รายการผู้ใช้งานระบบ', icon: Users, perm: 'manage_employees' },
         { path: '/employees/new', name: 'เพิ่มผู้ใช้งานใหม่', icon: UserPlus, perm: 'manage_employees' },
-        { path: '/leave/history', name: 'ประวัติการลาทั้งหมด', icon: History, perm: 'manage_employees' },
       ]
     },
     {
@@ -579,7 +571,6 @@ export default function AdminLayout() {
       group: 'ตั้งค่าระบบ',
       items: [
         { path: '/settings', name: 'ตั้งค่าทั่วไป', icon: Settings, perm: 'manage_settings' },
-        { path: '/settings/leave', name: 'ตั้งค่าการลา', icon: Settings, perm: 'manage_settings' },
         { path: '/settings/email-templates', name: 'เทมเพลตอีเมล', icon: FileText, perm: 'manage_settings' },
       ]
     }
