@@ -659,13 +659,10 @@ export default function AnnouncementPage() {
             {/* Col 3: IT Support Contact */}
             <div>
               <h5 className="text-white font-bold text-xs uppercase tracking-wider mb-3">ติดต่อทีมสนับสนุน IT</h5>
-              <p className="text-slate-400 leading-relaxed font-normal mb-2">
+              <p className="text-slate-400 leading-relaxed font-normal mb-1">
                 ฝ่ายเทคโนโลยีสารสนเทศ (IT Department)
               </p>
-              <p className="text-slate-300 font-semibold">
-                อีเมล: it-support@ascggroup.com
-              </p>
-              <p className="text-slate-400 mt-1">
+              <p className="text-slate-400">
                 เวลาทำการ: จันทร์ - ศุกร์ 08:30 - 17:30 น.
               </p>
             </div>
