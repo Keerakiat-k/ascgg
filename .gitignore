@@ -34,12 +34,14 @@ user/
 # Internal Scripts & Test Tools
 # ===========================
 backend/scripts/
+frontend/scripts/
 backend/seed*.js
 backend/test*.js
 backend/setup*.js
 backend/update*.js
 backend/create*.js
 backend/fix*.js
+frontend/test*.js
 *.bat
 *.ps1
 
