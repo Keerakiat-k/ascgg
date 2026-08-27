@@ -131,18 +131,18 @@ export default function AnnouncementPage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-amber-500 selection:text-white" style={{ fontFamily: "'Inter', 'Prompt', system-ui, sans-serif" }}>
 
       {/* ========== 1. TOP HEADER / NAVBAR ========== */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-xs transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-xs transition-all">
+        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
           
           {/* Brand Logo & Name */}
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => handleSwitchMode('news')}>
+          <div className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group shrink-0" onClick={() => handleSwitchMode('news')}>
             <div className="p-1.5 rounded-xl bg-gradient-to-tr from-amber-500/10 to-orange-500/10 border border-amber-200/60 shadow-xs group-hover:border-amber-400 transition">
-              <img src={logo} alt="ASCG Group" className="h-8 w-auto object-contain" />
+              <img src={logo} alt="ASCG Group" className="h-7 sm:h-8 w-auto object-contain" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5 font-bold text-slate-900 tracking-tight text-base leading-none">
+              <div className="flex items-center gap-1.5 font-bold text-slate-900 tracking-tight text-sm sm:text-base leading-none">
                 ASCG Group
-                <span className="text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
                   Portal
                 </span>
               </div>
@@ -152,11 +152,11 @@ export default function AnnouncementPage() {
             </div>
           </div>
 
-          {/* Center Navigation Mode Switcher */}
-          <div className="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200 shadow-inner">
+          {/* 💻 Desktop Center Navigation Mode Switcher (hidden on < md) */}
+          <div className="hidden md:flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200 shadow-inner">
             <button
               onClick={() => handleSwitchMode('news')}
-              className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
                 viewMode === 'news'
                   ? 'bg-white text-orange-700 shadow-xs ring-1 ring-black/5 font-bold'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
@@ -173,7 +173,7 @@ export default function AnnouncementPage() {
 
             <button
               onClick={() => handleSwitchMode('policies')}
-              className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
                 viewMode === 'policies'
                   ? 'bg-white text-blue-700 shadow-xs ring-1 ring-black/5 font-bold'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
@@ -190,10 +190,10 @@ export default function AnnouncementPage() {
           </div>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => navigate('/report-it')}
-              className="hidden md:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:border-amber-400 hover:text-amber-700 hover:shadow-xs transition"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:border-amber-400 hover:text-amber-700 hover:shadow-xs transition whitespace-nowrap"
             >
               <Headset size={14} className="text-amber-500" />
               <span>แจ้งปัญหา IT</span>
@@ -201,7 +201,7 @@ export default function AnnouncementPage() {
 
             <button
               onClick={() => navigate('/login')}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-orange-500/20 active:scale-[0.98] transition-all"
+              className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-orange-500/20 active:scale-[0.98] transition-all whitespace-nowrap"
             >
               <LogIn size={15} />
               <span>เข้าสู่ระบบ</span>
@@ -209,6 +209,46 @@ export default function AnnouncementPage() {
           </div>
 
         </div>
+
+        {/* 📱 Mobile Sub-Navbar Mode Switcher (< md) */}
+        <div className="md:hidden bg-slate-50/95 border-t border-slate-200/70 px-3 py-2 flex items-center justify-center">
+          <div className="flex items-center bg-slate-200/70 p-1 rounded-xl border border-slate-300/60 w-full">
+            <button
+              onClick={() => handleSwitchMode('news')}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                viewMode === 'news'
+                  ? 'bg-white text-orange-700 shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Newspaper size={13} className={viewMode === 'news' ? 'text-amber-500' : 'text-slate-500'} />
+              <span>ข่าวสาร & กิจกรรม</span>
+              {newsAnnouncements.length > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${viewMode === 'news' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'}`}>
+                  {newsAnnouncements.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => handleSwitchMode('policies')}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                viewMode === 'policies'
+                  ? 'bg-white text-blue-700 shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <ShieldCheck size={13} className={viewMode === 'policies' ? 'text-blue-600' : 'text-slate-500'} />
+              <span>นโยบายองค์กร</span>
+              {policyAnnouncements.length > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${viewMode === 'policies' ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700'}`}>
+                  {policyAnnouncements.length}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
       </header>
 
       {/* ========== 2. HERO SHOWCASE WITH MODERN AMBIENT ========== */}
