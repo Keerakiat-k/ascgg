@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Server, Plus, Search, Edit, Trash2, Globe, Mail, Save, X, Eye, EyeOff } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -151,47 +151,48 @@ export default function HostingAdminPage() {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-            <Server className="text-indigo-600" size={32} />
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-2.5">
+            <Server className="text-[#f89919]" size={28} />
             จัดการระบบ Hosting & Domain
           </h1>
-          <p className="text-slate-500 mt-2">จัดการรหัสผ่านและตรวจสอบวันต่ออายุ Hosting ของบริษัทในเครือ</p>
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">จัดการรหัสผ่านและตรวจสอบวันต่ออายุ Hosting ของบริษัทในเครือ</p>
         </div>
         <button 
           onClick={openNewModal}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors shadow-sm"
+          className="w-full sm:w-auto bg-[#f89919] hover:bg-[#d97c08] text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors shadow-2xs"
         >
-          <Plus size={20} />
+          <Plus size={18} />
           เพิ่มโดเมนใหม่
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-        <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div className="p-3.5 sm:p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="relative max-w-md w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
               type="text" 
               placeholder="ค้นหาชื่อโดเมน..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#f89919]/40 focus:border-[#f89919] outline-none transition-all bg-white"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* 💻 Desktop Table View (md:block) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-600">
-                <th className="px-6 py-4 font-medium">Domain / Company</th>
-                <th className="px-6 py-4 font-medium">Website Access</th>
-                <th className="px-6 py-4 font-medium">Email Hosting</th>
-                <th className="px-6 py-4 font-medium">Expiration</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium text-right">จัดการ</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <th className="px-6 py-4">Domain / Company</th>
+                <th className="px-6 py-4">Website Access</th>
+                <th className="px-6 py-4">Email Hosting</th>
+                <th className="px-6 py-4">Expiration</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-right">จัดการ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -204,9 +205,9 @@ export default function HostingAdminPage() {
                   return (
                     <tr key={item.id} className="hover:bg-slate-50 transition-colors align-top">
                       <td className="px-6 py-4">
-                        <div className="font-semibold text-slate-900 text-lg">{item.domain_name}</div>
+                        <div className="font-semibold text-slate-900 text-base">{item.domain_name}</div>
                         {item.note && (
-                          <div className="text-xs text-slate-500 mt-2 max-w-xs truncate" title={item.note}>
+                          <div className="text-xs text-slate-500 mt-1 max-w-xs truncate" title={item.note}>
                             {item.note.includes('{') ? 'มีข้อมูลนำเข้าจาก Excel' : item.note}
                           </div>
                         )}
@@ -214,13 +215,13 @@ export default function HostingAdminPage() {
                       <td className="px-6 py-4">
                         <div className="space-y-1">
                           <div className="text-sm font-medium flex items-center gap-1 text-slate-700">
-                            <Globe size={14} className="text-indigo-500"/> {item.website_url || '-'}
+                            <Globe size={14} className="text-[#f89919]"/> {item.website_url || '-'}
                           </div>
                           <div className="text-xs text-slate-500">U: {item.website_username || '-'}</div>
                           <div className="text-xs text-slate-500 flex items-center gap-1">
                             P: {showPassword[`${item.id}_web`] ? item.website_password : '••••••••'} 
                             {item.website_password && (
-                              <button onClick={() => togglePasswordVisibility(item.id, 'web')} className="text-indigo-500 hover:text-indigo-700">
+                              <button onClick={() => togglePasswordVisibility(item.id, 'web')} className="text-[#f89919] hover:text-orange-700">
                                 {showPassword[`${item.id}_web`] ? <EyeOff size={12}/> : <Eye size={12}/>}
                               </button>
                             )}
@@ -230,13 +231,13 @@ export default function HostingAdminPage() {
                       <td className="px-6 py-4">
                         <div className="space-y-1">
                           <div className="text-sm font-medium flex items-center gap-1 text-slate-700">
-                            <Mail size={14} className="text-indigo-500"/> {item.email_provider || '-'}
+                            <Mail size={14} className="text-[#f89919]"/> {item.email_provider || '-'}
                           </div>
                           <div className="text-xs text-slate-500">U: {item.email_username || '-'}</div>
                           <div className="text-xs text-slate-500 flex items-center gap-1">
                             P: {showPassword[`${item.id}_email`] ? item.email_password : '••••••••'}
                             {item.email_password && (
-                              <button onClick={() => togglePasswordVisibility(item.id, 'email')} className="text-indigo-500 hover:text-indigo-700">
+                              <button onClick={() => togglePasswordVisibility(item.id, 'email')} className="text-[#f89919] hover:text-orange-700">
                                 {showPassword[`${item.id}_email`] ? <EyeOff size={12}/> : <Eye size={12}/>}
                               </button>
                             )}
@@ -250,20 +251,20 @@ export default function HostingAdminPage() {
                         {isExpiringSoon && <div className="text-xs text-red-500 mt-1">ใกล้หมดอายุ/หมดอายุแล้ว</div>}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          item.status === 'Active' ? 'bg-green-100 text-green-700' :
-                          item.status === 'Expired' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          item.status === 'Active' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                          item.status === 'Expired' ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-700'
                         }`}>
                           {item.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
-                          <button onClick={() => handleEdit(item)} className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="แก้ไข">
-                            <Edit size={18} />
+                          <button onClick={() => handleEdit(item)} className="p-2 text-slate-400 hover:text-[#f89919] hover:bg-orange-50 rounded-lg transition-colors" title="แก้ไข">
+                            <Edit size={16} />
                           </button>
-                          <button onClick={() => handleDelete(item.id, item.domain_name)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="ลบ">
-                            <Trash2 size={18} />
+                          <button onClick={() => handleDelete(item.id, item.domain_name)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="ลบ">
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>
@@ -275,6 +276,107 @@ export default function HostingAdminPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* 📱 Mobile Card View (md:hidden) */}
+        <div className="block md:hidden divide-y divide-slate-100">
+          {isLoading ? (
+            <div className="py-8 text-center text-slate-500 text-xs">กำลังโหลดข้อมูล...</div>
+          ) : filteredData.length > 0 ? (
+            filteredData.map((item) => {
+              const isExpiringSoon = item.expiration_date && new Date(item.expiration_date) < new Date(new Date().setMonth(new Date().getMonth() + 1));
+              
+              return (
+                <div key={item.id} className="p-4 space-y-3 hover:bg-slate-50 transition-colors">
+                  
+                  {/* Top: Domain + Status */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-bold text-slate-900 text-base">{item.domain_name}</div>
+                      {item.note && (
+                        <div className="text-xs text-slate-400 mt-0.5">{item.note.includes('{') ? 'มีข้อมูลนำเข้าจาก Excel' : item.note}</div>
+                      )}
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${
+                      item.status === 'Active' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                      item.status === 'Expired' ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      {item.status}
+                    </span>
+                  </div>
+
+                  {/* Website & Email Access Details */}
+                  <div className="grid grid-cols-1 gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200/70 text-xs">
+                    
+                    {/* Web Info */}
+                    <div className="space-y-1">
+                      <span className="font-bold text-slate-700 flex items-center gap-1 text-[11px]">
+                        <Globe size={13} className="text-[#f89919]"/> เว็บไซต์: {item.website_url || '-'}
+                      </span>
+                      <div className="flex items-center justify-between text-slate-500 text-[11.5px]">
+                        <span>U: {item.website_username || '-'}</span>
+                        <div className="flex items-center gap-1">
+                          <span>P: {showPassword[`${item.id}_web`] ? item.website_password : '••••••••'}</span>
+                          {item.website_password && (
+                            <button onClick={() => togglePasswordVisibility(item.id, 'web')} className="text-[#f89919] p-0.5">
+                              {showPassword[`${item.id}_web`] ? <EyeOff size={12}/> : <Eye size={12}/>}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Email Info */}
+                    <div className="pt-2 border-t border-slate-200/50 space-y-1">
+                      <span className="font-bold text-slate-700 flex items-center gap-1 text-[11px]">
+                        <Mail size={13} className="text-[#f89919]"/> อีเมล: {item.email_provider || '-'}
+                      </span>
+                      <div className="flex items-center justify-between text-slate-500 text-[11.5px]">
+                        <span>U: {item.email_username || '-'}</span>
+                        <div className="flex items-center gap-1">
+                          <span>P: {showPassword[`${item.id}_email`] ? item.email_password : '••••••••'}</span>
+                          {item.email_password && (
+                            <button onClick={() => togglePasswordVisibility(item.id, 'email')} className="text-[#f89919] p-0.5">
+                              {showPassword[`${item.id}_email`] ? <EyeOff size={12}/> : <Eye size={12}/>}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Expiration */}
+                    <div className="pt-2 border-t border-slate-200/50 flex items-center justify-between">
+                      <span className="text-slate-400 text-[10.5px]">วันหมดอายุ:</span>
+                      <span className={`text-[11.5px] font-medium ${isExpiringSoon ? 'text-rose-600 font-bold' : 'text-slate-700'}`}>
+                        {item.expiration_date ? new Date(item.expiration_date).toLocaleDateString('th-TH') : 'ไม่ระบุ'}
+                        {isExpiringSoon && ' ⚠️'}
+                      </span>
+                    </div>
+
+                  </div>
+
+                  {/* Mobile Actions */}
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <button 
+                      onClick={() => handleEdit(item)} 
+                      className="px-2.5 py-1.5 text-xs text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors flex items-center gap-1 border border-orange-200"
+                    >
+                      <Edit size={13} /> แก้ไข
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(item.id, item.domain_name)} 
+                      className="px-2.5 py-1.5 text-xs text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors flex items-center gap-1 border border-rose-200"
+                    >
+                      <Trash2 size={13} /> ลบ
+                    </button>
+                  </div>
+
+                </div>
+              );
+            })
+          ) : (
+            <div className="py-8 text-center text-slate-400 text-xs">ไม่พบข้อมูล</div>
+          )}
         </div>
       </div>
 

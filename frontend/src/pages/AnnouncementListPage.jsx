@@ -210,9 +210,11 @@ export default function AnnouncementListPage() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table & Mobile Cards */}
       <div style={{ background: '#ffffff', borderRadius: 16, border: '1px solid #e9ebee', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
+        
+        {/* 💻 Desktop Table (hidden on < md) */}
+        <div className="hidden md:block overflow-x-auto">
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#fafbfc', borderBottom: '1px solid #e9ebee' }}>
@@ -286,6 +288,80 @@ export default function AnnouncementListPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* 📱 Mobile Card View (block on < md) */}
+        <div className="block md:hidden divide-y divide-slate-100">
+          {isLoading ? (
+            <div className="py-8 text-center text-slate-400 text-xs">กำลังโหลดข้อมูล...</div>
+          ) : currentItems.length > 0 ? (
+            currentItems.map((item) => (
+              <div key={item.id} className="p-4 space-y-2.5 hover:bg-slate-50 transition-colors">
+                
+                {/* Top: Type Badge + Status Toggle */}
+                <div className="flex items-center justify-between">
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    padding: '2px 8px', borderRadius: 9999, fontSize: 10.5, fontWeight: 600,
+                    ...(item.type === 'ประกาศสำคัญ' ? { background: '#fff1f2', color: '#be123c', border: '1px solid #fecdd3' } :
+                       item.type === 'กิจกรรม' ? { background: '#fff7ed', color: '#c2690a', border: '1px solid #fed7aa' } :
+                       { background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb' })
+                  }}>
+                    {item.type}
+                  </span>
+
+                  <button
+                    onClick={() => handleToggleStatus(item)}
+                    style={{
+                      padding: '2px 8px', borderRadius: 9999, fontSize: 10.5, fontWeight: 600,
+                      border: '1px solid', cursor: 'pointer',
+                      ...(item.status === 'Active'
+                        ? { background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }
+                        : { background: '#fff1f2', color: '#be123c', borderColor: '#fecdd3' })
+                    }}
+                  >
+                    {item.status === 'Active' ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+                  </button>
+                </div>
+
+                {/* Title */}
+                <div className="font-bold text-slate-900 text-sm leading-snug">
+                  {item.title}
+                </div>
+
+                {/* Date + Action Buttons */}
+                <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                  <span className="text-[11px] text-slate-400">
+                    {new Date(item.created_at).toLocaleDateString('th-TH')}
+                  </span>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => handleOpenEmailModal(item)}
+                      className="px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-semibold flex items-center gap-1 border border-indigo-200"
+                    >
+                      <Mail size={12} /> ส่งเมล
+                    </button>
+                    <button
+                      onClick={() => navigate(`/admin/announcements/edit/${item.id}`)}
+                      className="px-2 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-semibold flex items-center gap-1 border border-amber-200"
+                    >
+                      <Edit size={12} /> แก้ไข
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id, item.title)}
+                      className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            ))
+          ) : (
+            <div className="py-8 text-center text-slate-400 text-xs">ไม่พบข้อมูล</div>
+          )}
         </div>
 
         {/* Pagination */}

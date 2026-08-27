@@ -397,51 +397,53 @@ export default function ITHealthCheckPage() {
         </div>
 
         {/* --- MAIN TABS & DATE RANGE FILTER BAR --- */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-3 border-t border-slate-100">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-3 border-t border-slate-100">
           
           {/* Main Tab Switcher */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl w-max">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl w-full sm:w-max overflow-x-auto">
             <button
               onClick={() => setMainTab('daily')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              className={`flex-1 sm:flex-none whitespace-nowrap flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
                 mainTab === 'daily'
                   ? 'bg-white text-[#f89919] shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Calendar size={16} />
+              <Calendar size={15} />
               <span>📅 ตรวจเช็ครายวัน (Daily Check)</span>
             </button>
 
             <button
               onClick={() => setMainTab('executive')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              className={`flex-1 sm:flex-none whitespace-nowrap flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
                 mainTab === 'executive'
                   ? 'bg-white text-[#f89919] shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <BarChart3 size={16} />
+              <BarChart3 size={15} />
               <span>📊 รายงานภาพรวม (Operations Summary)</span>
             </button>
           </div>
 
           {/* Date Range Picker Controls */}
-          <div className="flex items-center gap-2 text-xs bg-slate-50 p-2 rounded-xl border border-slate-200">
-            <span className="font-bold text-slate-600">ช่วงวันที่ Export:</span>
-            <input 
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="bg-white border border-slate-200 px-2 py-1 rounded-lg text-slate-800 font-semibold"
-            />
-            <span className="text-slate-400">ถึง</span>
-            <input 
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="bg-white border border-slate-200 px-2 py-1 rounded-lg text-slate-800 font-semibold"
-            />
+          <div className="flex items-center gap-2 text-xs bg-slate-50 p-2 rounded-xl border border-slate-200 w-full sm:w-auto justify-between sm:justify-start">
+            <span className="font-bold text-slate-600 whitespace-nowrap">ช่วงวันที่ Export:</span>
+            <div className="flex items-center gap-1.5">
+              <input 
+                type="date" 
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="bg-white border border-slate-200 px-2 py-1 rounded-lg text-slate-800 font-semibold text-xs outline-none"
+              />
+              <span className="text-slate-400">ถึง</span>
+              <input 
+                type="date" 
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="bg-white border border-slate-200 px-2 py-1 rounded-lg text-slate-800 font-semibold text-xs outline-none"
+              />
+            </div>
           </div>
 
         </div>

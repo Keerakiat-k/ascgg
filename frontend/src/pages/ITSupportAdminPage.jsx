@@ -234,46 +234,48 @@ export default function ITSupportAdminPage() {
             </div>
 
             {/* แถบเลือกวันที่ + ปุ่ม Export */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto bg-slate-50 p-2 rounded-lg border border-slate-200">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <CalendarIcon size={16} className="text-slate-500 ml-2" />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                <CalendarIcon size={16} className="text-slate-500 shrink-0" />
                 <input 
                   type="date" 
-                  className="px-3 py-1.5 border border-slate-300 rounded-md text-sm outline-none focus:border-indigo-500"
+                  className="w-full sm:w-auto px-2 py-1.5 border border-slate-300 rounded-lg text-xs sm:text-sm outline-none focus:border-orange-500 bg-white"
                   value={startDate} onChange={(e) => setStartDate(e.target.value)}
                 />
-                <span className="text-slate-500 text-sm">ถึง</span>
+                <span className="text-slate-400 text-xs">ถึง</span>
                 <input 
                   type="date" 
-                  className="px-3 py-1.5 border border-slate-300 rounded-md text-sm outline-none focus:border-indigo-500"
+                  className="w-full sm:w-auto px-2 py-1.5 border border-slate-300 rounded-lg text-xs sm:text-sm outline-none focus:border-orange-500 bg-white"
                   value={endDate} onChange={(e) => setEndDate(e.target.value)}
                 />
               </div>
               
-              {/* 🌟 เพิ่มปุ่มเป็น 2 ปุ่ม: Excel และ PDF 🌟 */}
+              {/* 🌟 ปุ่ม Export Excel & PDF 🌟 */}
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button 
                   onClick={handleExportExcel}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-green-600 text-white hover:bg-green-700 px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm"
-                  title="ดาวน์โหลดเป็นไฟล์ Excel (CSV)"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-2xs"
+                  title="ดาวน์โหลดเป็นไฟล์ Excel"
                 >
-                  <Download size={16} /> Excel
+                  <Download size={14} /> Excel
                 </button>
                 <button 
                   onClick={handleExportPDF}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-slate-900 text-white hover:bg-slate-800 px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm"
-                  title="พิมพ์หน้าจอเป็น PDF สรุปสำหรับผู้บริหาร"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-slate-900 text-white hover:bg-slate-800 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-2xs"
+                  title="พิมพ์สรุปเป็น PDF สำหรับผู้บริหาร"
                 >
-                  <FileText size={16} /> PDF
+                  <FileText size={14} /> PDF
                 </button>
               </div>
             </div>
 
           </div>
 
-          {/* ตารางข้อมูล */}
+          {/* ตารางข้อมูล & Mobile Card View */}
           <div className="bg-white rounded-2xl border border-[#dfe0df] shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+            
+            {/* 💻 Desktop Table (md:block) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-[#fff8f0] border-b border-[#dfe0df] text-sm text-slate-700">
@@ -289,7 +291,7 @@ export default function ITSupportAdminPage() {
                   {filteredTickets.length > 0 ? (
                     filteredTickets.map((ticket) => (
                       <tr key={ticket.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 font-semibold text-indigo-600">{ticket.ticket_no}</td>
+                        <td className="px-6 py-4 font-semibold text-orange-600 font-mono">{ticket.ticket_no}</td>
                         <td className="px-6 py-4 text-sm text-slate-600">
                           {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString('th-TH') : '-'}
                         </td>
@@ -309,7 +311,7 @@ export default function ITSupportAdminPage() {
                         <td className="px-6 py-4 text-right">
                           <button 
                             onClick={() => openUpdateModal(ticket)}
-                            className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border border-indigo-100"
+                            className="bg-orange-50 hover:bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border border-orange-200"
                           >
                             ตรวจสอบ
                           </button>
@@ -324,6 +326,52 @@ export default function ITSupportAdminPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* 📱 Mobile Card View (md:hidden) */}
+            <div className="block md:hidden divide-y divide-slate-100">
+              {filteredTickets.length > 0 ? (
+                filteredTickets.map((ticket) => (
+                  <div key={ticket.id} className="p-4 space-y-2.5 hover:bg-slate-50 transition-colors">
+                    
+                    {/* Top: Ticket No + Status */}
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                        {ticket.ticket_no}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border ${getStatusBadge(ticket.status)}`}>
+                        {ticket.status}
+                      </span>
+                    </div>
+
+                    {/* Details: User + Dept + Category */}
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm">{ticket.name}</div>
+                      <div className="text-xs text-slate-500">{ticket.department} • {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString('th-TH') : '-'}</div>
+                    </div>
+
+                    {/* Problem Description */}
+                    <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/70 text-xs">
+                      <span className="text-[10px] text-slate-400 font-bold block mb-0.5">หมวดหมู่: {ticket.category}</span>
+                      <p className="text-slate-800 line-clamp-2 leading-relaxed">{ticket.description}</p>
+                    </div>
+
+                    {/* Action */}
+                    <div className="flex justify-end pt-1">
+                      <button 
+                        onClick={() => openUpdateModal(ticket)}
+                        className="w-full py-2 bg-[#f89919] hover:bg-[#d97c08] text-white text-xs font-semibold rounded-xl transition-colors text-center shadow-2xs"
+                      >
+                        ตรวจสอบ / อัปเดตสถานะ
+                      </button>
+                    </div>
+
+                  </div>
+                ))
+              ) : (
+                <div className="py-12 text-center text-slate-500 text-xs">ไม่พบข้อมูลแจ้งซ่อม</div>
+              )}
+            </div>
+
           </div>
       </div>
 

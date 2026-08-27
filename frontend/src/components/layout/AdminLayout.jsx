@@ -646,6 +646,11 @@ export default function AdminLayout() {
                       key={item.path}
                       to={item.path}
                       end
+                      onClick={() => {
+                        if (window.innerWidth < 768) {
+                          setIsSidebarOpen(false);
+                        }
+                      }}
                       style={({ isActive }) => ({
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '7px 10px', borderRadius: 8,
@@ -685,27 +690,28 @@ export default function AdminLayout() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         {/* TOP NAVBAR */}
-        <header className="flex items-center justify-between px-5 sm:px-7 z-30" style={{ height: 60, background: '#ffffff', borderBottom: '1px solid #eef0f4', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div className="flex items-center gap-4">
+        <header className="flex items-center justify-between px-3 sm:px-7 z-30" style={{ height: 60, background: '#ffffff', borderBottom: '1px solid #eef0f4', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <button 
-              className="text-slate-500 hover:text-[#f89919] hover:bg-slate-100 p-2 rounded-lg transition-colors md:hidden"
+              className="text-slate-500 hover:text-[#f89919] hover:bg-slate-100 p-2 rounded-lg transition-colors md:hidden shrink-0"
               onClick={() => setIsSidebarOpen(true)}
+              aria-label="Open Menu"
             >
               <Menu size={20} />
             </button>
             
             {/* 🛠️ Test Roles Switcher */}
             {(userInfo.original_role === 'Admin' || userInfo.role === 'Admin' || String(userInfo.role_id) === '1' || Boolean(userInfo.original_role)) && (
-              <div className="flex items-center gap-2 text-xs bg-slate-100 p-1.5 rounded-xl border border-slate-200 max-w-[60vw] sm:max-w-none">
-                <span className="font-semibold text-slate-500 px-2 flex items-center gap-1">
-                  <span>🎭</span> จำลองสิทธิ์:
+              <div className="flex items-center gap-1.5 text-xs bg-slate-100 p-1 sm:p-1.5 rounded-xl border border-slate-200 max-w-[55vw] sm:max-w-none">
+                <span className="font-semibold text-slate-500 px-1 sm:px-2 flex items-center gap-1 shrink-0 text-[11px] sm:text-xs">
+                  <span>🎭</span> <span className="hidden sm:inline">จำลองสิทธิ์:</span>
                 </span>
-                <div className="flex items-center gap-1 overflow-x-auto max-w-[420px] custom-scrollbar pb-0.5">
+                <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-[420px] custom-scrollbar pb-0.5">
                   {simulationRoles.filter(r => r.name !== 'Employee' && r.name !== 'Manager').map(r => (
                     <button 
                       key={r.id}
                       onClick={() => simulateRole(r)} 
-                      className={`whitespace-nowrap px-2.5 py-1 rounded-lg transition-all ${userRole === r.name ? 'bg-[#f89919] text-white shadow-sm font-bold' : 'text-slate-600 hover:bg-white hover:text-[#f89919]'}`}
+                      className={`whitespace-nowrap px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-xs transition-all ${userRole === r.name ? 'bg-[#f89919] text-white shadow-sm font-bold' : 'text-slate-600 hover:bg-white hover:text-[#f89919]'}`}
                     >
                       {r.name}
                     </button>
@@ -715,7 +721,7 @@ export default function AdminLayout() {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* 🔔 Interactive Notification Dropdown */}
             <div ref={notifRef} className="relative">
               <button 
@@ -732,7 +738,7 @@ export default function AdminLayout() {
               </button>
 
               {isNotifOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden text-xs">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] sm:w-96 max-w-sm bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden text-xs">
                   <div className="p-3.5 bg-slate-900 text-white font-bold flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Bell size={16} className="text-[#f89919]" />

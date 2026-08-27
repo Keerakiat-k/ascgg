@@ -457,23 +457,23 @@ export default function SystemSettingsPage() {
         <p className="text-slate-500 mt-1">บริหารจัดการข้อมูลโครงสร้างบริษัท สิทธิ์ผู้ใช้งาน และค่าพื้นฐานของระบบ</p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
         
-        {/* Sidebar Tabs */}
-        <div className="w-72 shrink-0">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-2">
+        {/* Sidebar Tabs (Horizontal scroll on mobile, vertical on desktop) */}
+        <div className="w-full lg:w-72 shrink-0">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-1.5 sm:p-2 flex lg:flex-col overflow-x-auto gap-1">
             {TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                className={`whitespace-nowrap flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 shrink-0 lg:shrink lg:w-full ${
                   activeTab === tab.id 
-                    ? 'bg-indigo-50 text-indigo-700 shadow-sm' 
+                    ? 'bg-indigo-50 text-indigo-700 shadow-xs' 
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <tab.icon size={18} className={activeTab === tab.id ? 'text-indigo-600' : 'text-slate-400'} />
-                {tab.label}
+                <tab.icon size={17} className={activeTab === tab.id ? 'text-indigo-600' : 'text-slate-400'} />
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>

@@ -249,43 +249,45 @@ export default function EmployeeListPage() {
         </div>
 
         {/* Actions Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#dfe0df] shadow-sm mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#dfe0df] shadow-sm mb-6">
           
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full md:w-auto">
+            <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#ae8a68]" size={18} />
               <input 
                 type="text" 
                 placeholder="ค้นหารหัส หรือ ชื่อผู้ใช้..." 
-                className="pl-10 pr-4 py-2 border border-[#dfe0df] rounded-xl focus:ring-2 focus:ring-[#f89919]/40 focus:border-[#f89919] outline-none w-full md:w-64 text-sm"
+                className="pl-10 pr-4 py-2 border border-[#dfe0df] rounded-xl focus:ring-2 focus:ring-[#f89919]/40 focus:border-[#f89919] outline-none w-full text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             
-            <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600 hover:text-slate-900 bg-[#fff8f0] px-3 py-2 rounded-xl border border-[#dfe0df] transition-colors">
+            <label className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm text-slate-600 hover:text-slate-900 bg-[#fff8f0] px-3 py-2 rounded-xl border border-[#dfe0df] transition-colors">
               <input 
                 type="checkbox" 
                 checked={showResigned} 
                 onChange={(e) => setShowResigned(e.target.checked)}
                 className="w-4 h-4 text-[#f89919] rounded border-[#dfe0df] focus:ring-[#f89919]"
               />
-              แสดงผู้ใช้งานที่ปิดใช้งาน (Resigned)
+              <span>แสดงผู้ใช้ที่ปิดใช้งาน (Resigned)</span>
             </label>
           </div>
           
           <button 
             onClick={() => navigate('/employees/new')}
-            className="bg-[#f89919] hover:bg-[#d97c08] text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-colors font-semibold text-sm shadow-sm"
+            className="w-full sm:w-auto bg-[#f89919] hover:bg-[#d97c08] text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-semibold text-sm shadow-sm"
           >
             <Plus size={18} />
             เพิ่มผู้ใช้งานใหม่
           </button>
         </div>
 
-        {/* Table Section */}
+        {/* Table & Mobile Cards Section */}
         <div className="bg-white rounded-2xl border border-[#dfe0df] shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          
+          {/* 💻 Desktop Table View (md:block) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-[#fff8f0] border-b border-[#dfe0df] text-sm text-slate-700">
@@ -356,7 +358,6 @@ export default function EmployeeListPage() {
                       
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-1">
-                          
                           {isAdmin && (
                             <button 
                               onClick={() => handleSendWelcomeEmail(employee)}
@@ -390,33 +391,130 @@ export default function EmployeeListPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="text-center py-12 text-slate-400">ไม่พบข้อมูลพนักงาน</td>
+                    <td colSpan="8" className="text-center py-12 text-slate-400">ไม่พบข้อมูลพนักงาน</td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
 
+          {/* 📱 Mobile Card View (md:hidden) */}
+          <div className="block md:hidden divide-y divide-slate-100">
+            {isLoading ? (
+              <div className="py-12 text-center text-slate-400">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#f89919] border-t-transparent mx-auto mb-2"></div>
+                <span className="text-xs">กำลังโหลดข้อมูลผู้ใช้...</span>
+              </div>
+            ) : currentEmployees.length > 0 ? (
+              currentEmployees.map((employee) => (
+                <div key={employee.id} className="p-4 space-y-3 hover:bg-slate-50 transition-colors">
+                  
+                  {/* Top: Avatar + Name + Status */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {employee.profile_image ? (
+                        <img src={`${import.meta.env.VITE_API_BASE_URL}${employee.profile_image}`} alt="Profile" className="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 shrink-0">
+                          <User size={20} className="text-slate-400" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                            {employee.employee_code}
+                          </span>
+                          <span className="text-xs font-bold text-orange-600">{employee.company_prefix}</span>
+                        </div>
+                        <div className="font-bold text-slate-900 text-sm mt-0.5">
+                          {employee.full_name_th} {employee.nickname && <span className="text-slate-400 text-xs">({employee.nickname})</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${
+                      employee.status === 'Active' 
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        employee.status === 'Active' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+                      }`} />
+                      {employee.status === 'Active' ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+                    </span>
+                  </div>
+
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200/70 text-xs">
+                    <div>
+                      <span className="text-slate-400 block text-[10.5px]">แผนก / ตำแหน่ง</span>
+                      <span className="font-medium text-slate-700">{employee.department_name || '-'} • {employee.position || '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10.5px]">ทรัพย์สินถือครอง</span>
+                      <span className="font-bold text-[#f89919]">💻 {employee.asset_count || 0} เครื่อง</span>
+                    </div>
+                    {employee.email && (
+                      <div className="col-span-2 pt-1 border-t border-slate-200/50">
+                        <span className="text-slate-400 block text-[10.5px]">อีเมล</span>
+                        <span className="font-mono text-slate-600 text-[11px] break-all">{employee.email}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Mobile Action Buttons */}
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    {isAdmin && (
+                      <button 
+                        onClick={() => handleSendWelcomeEmail(employee)}
+                        className="px-2.5 py-1.5 text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors flex items-center gap-1 border border-emerald-200"
+                      >
+                        <Mail size={13} /> ส่งอีเมล
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => navigate(`/edit-employee/${employee.id}`)}
+                      className="px-2.5 py-1.5 text-xs text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors flex items-center gap-1 border border-orange-200"
+                    >
+                      <Edit size={13} /> แก้ไข
+                    </button>
+                    {employee.status !== 'Inactive' && (
+                      <button 
+                        onClick={() => handleResign(employee.id, employee.full_name_th)}
+                        className="px-2.5 py-1.5 text-xs text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors flex items-center gap-1 border border-rose-200"
+                      >
+                        <UserMinus size={13} /> ปิดใช้งาน
+                      </button>
+                    )}
+                  </div>
+
+                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center text-slate-400 text-xs">ไม่พบข้อมูลพนักงาน</div>
+            )}
+          </div>
+
           {/* Pagination Controls */}
           {!isLoading && totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
-              <span className="text-sm text-slate-500">
+            <div className="px-4 sm:px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span className="text-xs sm:text-sm text-slate-500 text-center sm:text-left">
                 แสดง {startIndex + 1}–{Math.min(startIndex + itemsPerPage, filteredEmployees.length)} จากทั้งหมด {filteredEmployees.length} รายการ
               </span>
               <div className="flex gap-2">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm text-slate-600 transition-colors"
+                  className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm text-slate-600 transition-colors"
                 >
                   ก่อนหน้า
                 </button>
-                <div className="flex gap-1 items-center">
+                <div className="flex gap-1 items-center overflow-x-auto max-w-[200px] sm:max-w-none">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors ${
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs sm:text-sm font-medium transition-colors shrink-0 ${
                         currentPage === page
                           ? 'bg-[#f89919] text-white shadow-sm font-bold'
                           : 'hover:bg-slate-100 text-slate-600'
@@ -429,7 +527,7 @@ export default function EmployeeListPage() {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm text-slate-600 transition-colors"
+                  className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm text-slate-600 transition-colors"
                 >
                   ถัดไป
                 </button>
