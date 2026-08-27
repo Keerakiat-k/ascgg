@@ -467,14 +467,6 @@ export default function EmployeeListPage() {
                             <Printer size={15} />
                           </button>
 
-                          <button 
-                            onClick={() => handleOpenLeaveModal(employee)}
-                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                            title="จัดการโควต้าวันลา"
-                          >
-                            <CalendarRange size={15} />
-                          </button>
-
                           {isAdmin && employee.email && (
                             <button 
                               onClick={() => handleSendWelcomeEmail(employee)}
