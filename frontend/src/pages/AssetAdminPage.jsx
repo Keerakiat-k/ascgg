@@ -10,6 +10,7 @@ import {
 import Swal from 'sweetalert2';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import Select from 'react-select';
 
 export default function AssetAdminPage() {
   const [searchParams] = useSearchParams();
@@ -360,15 +361,101 @@ export default function AssetAdminPage() {
     }
   };
 
+  // React-Select Custom Styling (Hybrid Comfort Theme)
+  const selectCustomStyles = {
+    control: (base, state) => ({
+      ...base,
+      fontSize: '12px',
+      minHeight: '34px',
+      height: '34px',
+      borderRadius: '0.5rem',
+      borderColor: state.isFocused ? '#f89919' : '#e2e8f0',
+      boxShadow: state.isFocused ? '0 0 0 2px rgba(248, 153, 25, 0.2)' : 'none',
+      '&:hover': {
+        borderColor: state.isFocused ? '#f89919' : '#cbd5e1'
+      },
+      backgroundColor: '#ffffff',
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      padding: '0 8px',
+      height: '34px',
+      display: 'flex',
+      alignItems: 'center'
+    }),
+    input: (base) => ({
+      ...base,
+      margin: '0',
+      padding: '0',
+      fontSize: '12px'
+    }),
+    indicatorsContainer: (base) => ({
+      ...base,
+      height: '34px'
+    }),
+    menu: (base) => ({
+      ...base,
+      zIndex: 9999,
+      fontSize: '12px',
+      borderRadius: '0.75rem',
+      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+      border: '1px solid #e2e8f0',
+      overflow: 'hidden'
+    }),
+    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected ? '#f89919' : state.isFocused ? '#fff8f0' : 'white',
+      color: state.isSelected ? 'white' : '#0f172a',
+      padding: '7px 12px',
+      cursor: 'pointer',
+      fontSize: '12px',
+      '&:active': {
+        backgroundColor: '#f89919',
+        color: 'white'
+      }
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: '#94a3b8',
+      fontSize: '12px'
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: '#0f172a',
+      fontWeight: 500,
+      fontSize: '12px'
+    })
+  };
+
+  // Options for Searchable Employee Select
+  const employeeOptions = [
+    { value: '', label: '-- ยังไม่มีผู้ถือครอง (เก็บในคลัง / Available) --' },
+    ...employees.map(emp => ({
+      value: String(emp.id),
+      label: `${emp.first_name_th || ''} ${emp.last_name_th || ''} (${emp.company_prefix || 'ASCG'} - ${emp.department_name || emp.department || 'ทั่วไป'})`,
+      employee: emp
+    }))
+  ];
+
+  const transferEmployeeOptions = [
+    { value: '', label: '-- เก็บเข้าคลังปลายทาง (Stock) --' },
+    ...employees.map(emp => ({
+      value: String(emp.id),
+      label: `${emp.first_name_th || ''} ${emp.last_name_th || ''} (${emp.company_prefix || 'ASCG'} - ${emp.department_name || emp.department || 'ทั่วไป'})`,
+      employee: emp
+    }))
+  ];
+
   // Smart Auto-fill: เมื่อเลือกพนักงาน ดึงบริษัท แผนก และสาขา มาให้อัตโนมัติ
-  const handleEmployeeChange = (e) => {
-    const empId = e.target.value;
+  const handleSelectEmployee = (selectedOption) => {
+    const empId = selectedOption?.value;
     if (!empId) {
       setFormData(prev => ({ ...prev, assigned_to: '', status: 'Available' }));
       return;
     }
 
-    const emp = employees.find(x => x.id === parseInt(empId, 10));
+    const emp = selectedOption.employee || employees.find(x => String(x.id) === String(empId));
     if (emp) {
       setFormData(prev => ({
         ...prev,
@@ -381,6 +468,11 @@ export default function AssetAdminPage() {
     } else {
       setFormData(prev => ({ ...prev, assigned_to: empId, status: 'In Use' }));
     }
+  };
+
+  const handleEmployeeChange = (e) => {
+    const empId = e.target.value;
+    handleSelectEmployee(empId ? { value: empId } : null);
   };
 
   // Submit Add / Edit
@@ -1652,21 +1744,20 @@ export default function AssetAdminPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   
-                  {/* Assigned Employee */}
+                  {/* Assigned Employee (Searchable / Filterable Autocomplete) */}
                   <div>
                     <label className="block text-[11px] font-bold text-slate-600 mb-1">พนักงานผู้ถือครอง</label>
-                    <select
-                      value={formData.assigned_to}
-                      onChange={handleEmployeeChange}
-                      className="input-base text-xs py-2 bg-white"
-                    >
-                      <option value="">-- ยังไม่มีผู้ถือครอง (เก็บในคลัง) --</option>
-                      {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>
-                          {emp.first_name_th} {emp.last_name_th} ({emp.company_prefix} - {emp.department_name || emp.department || 'ไม่ระบุแผนก'})
-                        </option>
-                      ))}
-                    </select>
+                    <Select
+                      value={employeeOptions.find(opt => String(opt.value) === String(formData.assigned_to)) || null}
+                      onChange={handleSelectEmployee}
+                      options={employeeOptions}
+                      placeholder="🔍 พิมพ์เพื่อค้นหาชื่อพนักงาน..."
+                      isClearable
+                      isSearchable
+                      styles={selectCustomStyles}
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                      noOptionsMessage={() => "ไม่พบรายชื่อพนักงาน"}
+                    />
                   </div>
 
                   {/* Department */}
@@ -2175,18 +2266,17 @@ export default function AssetAdminPage() {
 
                   <div>
                     <label className="block text-[11px] font-bold text-slate-600 mb-1">ผู้รับมอบปลายทาง</label>
-                    <select
-                      value={transferData.to_user_id}
-                      onChange={(e) => setTransferData(prev => ({ ...prev, to_user_id: e.target.value }))}
-                      className="input-base text-xs py-2 bg-white"
-                    >
-                      <option value="">-- เก็บเข้าคลังปลายทาง (Stock) --</option>
-                      {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>
-                          {emp.first_name_th} {emp.last_name_th} ({emp.company_prefix} - {emp.department_name || emp.department})
-                        </option>
-                      ))}
-                    </select>
+                    <Select
+                      value={transferEmployeeOptions.find(opt => String(opt.value) === String(transferData.to_user_id)) || null}
+                      onChange={(opt) => setTransferData(prev => ({ ...prev, to_user_id: opt ? opt.value : '' }))}
+                      options={transferEmployeeOptions}
+                      placeholder="🔍 พิมพ์เพื่อค้นหาผู้รับมอบ..."
+                      isClearable
+                      isSearchable
+                      styles={selectCustomStyles}
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                      noOptionsMessage={() => "ไม่พบรายชื่อพนักงาน"}
+                    />
                   </div>
                 </div>
 
