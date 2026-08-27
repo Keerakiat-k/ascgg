@@ -1147,7 +1147,7 @@ export default function NetworkAdminPage() {
       return;
     }
 
-    // 🔑 Show Audit Log Reason Prompt Modal (Design Spec Section 4.2)
+    // 🔑 Modal ยืนยันการขอเปิดดูรหัสผ่านพร้อมบันทึก Audit Log
     Swal.fire({
       title: '🔑 ยืนยันการขอเปิดดูรหัสผ่าน (Audit Log Notice)',
       html: `

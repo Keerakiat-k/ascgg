@@ -1,7 +1,9 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "ASCG Group Enterprise Portal Web Application",
+  "author": "Keerakiat Kanchanawas",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
