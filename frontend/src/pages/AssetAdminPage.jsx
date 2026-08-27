@@ -366,8 +366,7 @@ export default function AssetAdminPage() {
     control: (base, state) => ({
       ...base,
       fontSize: '12px',
-      minHeight: '34px',
-      height: '34px',
+      minHeight: '38px',
       borderRadius: '0.5rem',
       borderColor: state.isFocused ? '#f89919' : '#e2e8f0',
       boxShadow: state.isFocused ? '0 0 0 2px rgba(248, 153, 25, 0.2)' : 'none',
@@ -375,11 +374,11 @@ export default function AssetAdminPage() {
         borderColor: state.isFocused ? '#f89919' : '#cbd5e1'
       },
       backgroundColor: '#ffffff',
+      cursor: 'pointer'
     }),
     valueContainer: (base) => ({
       ...base,
-      padding: '0 8px',
-      height: '34px',
+      padding: '2px 8px',
       display: 'flex',
       alignItems: 'center'
     }),
@@ -387,29 +386,27 @@ export default function AssetAdminPage() {
       ...base,
       margin: '0',
       padding: '0',
-      fontSize: '12px'
-    }),
-    indicatorsContainer: (base) => ({
-      ...base,
-      height: '34px'
+      fontSize: '12px',
+      color: '#0f172a'
     }),
     menu: (base) => ({
       ...base,
-      zIndex: 9999,
+      zIndex: 99999,
       fontSize: '12px',
       borderRadius: '0.75rem',
       boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
       border: '1px solid #e2e8f0',
       overflow: 'hidden'
     }),
-    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+    menuPortal: (base) => ({ ...base, zIndex: 99999 }),
     option: (base, state) => ({
       ...base,
       backgroundColor: state.isSelected ? '#f89919' : state.isFocused ? '#fff8f0' : 'white',
       color: state.isSelected ? 'white' : '#0f172a',
-      padding: '7px 12px',
+      padding: '8px 12px',
       cursor: 'pointer',
       fontSize: '12px',
+      lineHeight: '1.4',
       '&:active': {
         backgroundColor: '#f89919',
         color: 'white'
@@ -418,13 +415,16 @@ export default function AssetAdminPage() {
     placeholder: (base) => ({
       ...base,
       color: '#94a3b8',
-      fontSize: '12px'
+      fontSize: '12px',
+      margin: 0
     }),
     singleValue: (base) => ({
       ...base,
       color: '#0f172a',
       fontWeight: 500,
-      fontSize: '12px'
+      fontSize: '12px',
+      margin: 0,
+      lineHeight: '1.4'
     })
   };
 
