@@ -350,25 +350,22 @@ export default function EmployeeListPage() {
         {/* Table & Mobile Cards Section */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
           
-          {/* 💻 Desktop Table View (md:block) */}
-          <div className="hidden md:block overflow-x-auto">
+          {/* 💻 Desktop Table View (md:block) - Fit to 100% Screen width with No Horizontal Scroll */}
+          <div className="hidden md:block w-full overflow-hidden">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="bg-slate-50/90 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
-                  <th className="px-5 py-3.5 whitespace-nowrap">รหัสพนักงาน</th>
-                  <th className="px-5 py-3.5 whitespace-nowrap">ข้อมูลผู้ใช้งาน</th>
-                  <th className="px-5 py-3.5 whitespace-nowrap">บริษัท / แผนก</th>
-                  <th className="px-5 py-3.5 whitespace-nowrap">ตำแหน่งงาน</th>
-                  <th className="px-5 py-3.5 whitespace-nowrap">อีเมลองค์กร</th>
-                  <th className="px-5 py-3.5 text-center whitespace-nowrap">อุปกรณ์ IT</th>
-                  <th className="px-5 py-3.5 text-center whitespace-nowrap">สถานะ</th>
-                  <th className="px-5 py-3.5 text-right whitespace-nowrap">จัดการ</th>
+                  <th className="px-4 py-3.5 w-[32%]">ผู้ใช้งานระบบ</th>
+                  <th className="px-4 py-3.5 w-[25%]">สังกัด & ตำแหน่ง</th>
+                  <th className="px-4 py-3.5 w-[23%]">อีเมล & อุปกรณ์ IT</th>
+                  <th className="px-4 py-3.5 w-[10%] text-center">สถานะ</th>
+                  <th className="px-4 py-3.5 w-[10%] text-right">จัดการ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {isLoading ? (
                   <tr>
-                    <td colSpan="8" className="text-center py-16 text-slate-400">
+                    <td colSpan="5" className="text-center py-16 text-slate-400">
                       <div className="flex flex-col items-center gap-2">
                         <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#f89919] border-t-transparent"></div>
                         <span className="text-xs font-medium">กำลังโหลดข้อมูลผู้ใช้งานระบบ...</span>
@@ -379,30 +376,28 @@ export default function EmployeeListPage() {
                   currentEmployees.map((employee) => (
                     <tr key={employee.id} className="hover:bg-slate-50/70 transition-colors">
                       
-                      {/* 1. Employee Code */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <span className="font-mono font-bold text-xs bg-slate-100 text-slate-800 px-2.5 py-1 rounded-lg border border-slate-200">
-                          {employee.employee_code}
-                        </span>
-                      </td>
-
-                      {/* 2. Employee Profile & Name (Single Line) */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
+                      {/* 1. Profile, Code & Name */}
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {employee.profile_image ? (
-                            <img src={`${import.meta.env.VITE_API_BASE_URL}${employee.profile_image}`} alt="Profile" className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0" />
+                            <img src={`${import.meta.env.VITE_API_BASE_URL}${employee.profile_image}`} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0 shadow-xs" />
                           ) : (
-                            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 shrink-0 text-slate-400 font-semibold text-xs">
-                              <User size={16} />
+                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 shrink-0 text-slate-400">
+                              <User size={18} />
                             </div>
                           )}
-                          <div className="whitespace-nowrap">
-                            <div className="text-slate-900 font-bold text-sm whitespace-nowrap">
-                              {employee.full_name_th || `${employee.first_name_th || ''} ${employee.last_name_th || ''}`.trim()}
-                              {employee.nickname && <span className="text-slate-400 font-normal text-xs ml-1">({employee.nickname})</span>}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-mono font-bold text-[11px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
+                                {employee.employee_code}
+                              </span>
+                              <span className="text-slate-900 font-bold text-sm">
+                                {employee.full_name_th || `${employee.first_name_th || ''} ${employee.last_name_th || ''}`.trim()}
+                                {employee.nickname && <span className="text-slate-400 font-normal text-xs ml-1">({employee.nickname})</span>}
+                              </span>
                             </div>
                             {(employee.first_name_en || employee.last_name_en) && (
-                              <div className="text-xs text-slate-400 whitespace-nowrap">
+                              <div className="text-xs text-slate-400 mt-0.5 truncate">
                                 {employee.first_name_en} {employee.last_name_en}
                               </div>
                             )}
@@ -410,50 +405,44 @@ export default function EmployeeListPage() {
                         </div>
                       </td>
 
-                      {/* 3. Company & Dept (Multiline when long) */}
-                      <td className="px-5 py-3.5 min-w-[180px] max-w-[240px]">
-                        <div className="flex flex-col items-start gap-1">
-                          <span className="font-bold text-xs px-2 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200 shrink-0 inline-block">
+                      {/* 2. Company, Position & Dept */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                          <span className="font-bold text-[11px] px-1.5 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200 shrink-0">
                             {employee.company_prefix}
                           </span>
-                          <span className="text-xs text-slate-600 leading-relaxed break-words">
-                            {employee.department_name || 'ทั่วไป'}
+                          <span className="font-semibold text-slate-800 text-xs">
+                            {employee.position || '-'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-500 leading-snug break-words" title={employee.department_name}>
+                          {employee.department_name || 'ทั่วไป'}
+                        </div>
+                      </td>
+
+                      {/* 3. Email & IT Assets */}
+                      <td className="px-4 py-3">
+                        {employee.email ? (
+                          <a href={`mailto:${employee.email}`} className="text-xs font-mono text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1.5 mb-1 truncate" title={employee.email}>
+                            <Mail size={13} className="text-slate-400 shrink-0" />
+                            <span className="truncate">{employee.email}</span>
+                          </a>
+                        ) : (
+                          <div className="text-xs text-slate-400 mb-1">-</div>
+                        )}
+                        <div>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold ${
+                            (employee.asset_count || 0) > 0 
+                              ? 'bg-amber-50 text-[#f89919] border border-amber-200' 
+                              : 'bg-slate-100 text-slate-400 border border-slate-200'
+                          }`}>
+                            💻 {employee.asset_count || 0} เครื่อง
                           </span>
                         </div>
                       </td>
 
-                      {/* 4. Position (Multiline when long) */}
-                      <td className="px-5 py-3.5 min-w-[150px] max-w-[200px]">
-                        <div className="text-slate-700 text-xs font-medium leading-relaxed break-words">
-                          {employee.position || '-'}
-                        </div>
-                      </td>
-
-                      {/* 5. Email */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        {employee.email ? (
-                          <a href={`mailto:${employee.email}`} className="text-xs font-mono text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1.5">
-                            <Mail size={13} className="text-slate-400 shrink-0" />
-                            <span>{employee.email}</span>
-                          </a>
-                        ) : (
-                          <span className="text-slate-400 text-xs font-mono">-</span>
-                        )}
-                      </td>
-
-                      {/* 6. Assets Held */}
-                      <td className="px-5 py-3.5 text-center whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold ${
-                          (employee.asset_count || 0) > 0 
-                            ? 'bg-amber-50 text-[#f89919] border border-amber-200' 
-                            : 'bg-slate-100 text-slate-400 border border-slate-200'
-                        }`}>
-                          💻 {employee.asset_count || 0} เครื่อง
-                        </span>
-                      </td>
-
-                      {/* 7. Status */}
-                      <td className="px-5 py-3.5 text-center whitespace-nowrap">
+                      {/* 4. Status */}
+                      <td className="px-4 py-3 text-center whitespace-nowrap">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-xs ${
                           employee.status === 'Active' 
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
@@ -466,16 +455,16 @@ export default function EmployeeListPage() {
                         </span>
                       </td>
                       
-                      {/* 8. Actions */}
-                      <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1">
+                      {/* 5. Actions */}
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-0.5">
                           
                           <button 
                             onClick={() => triggerPrint(employee)}
                             className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="พิมพ์แบบฟอร์ม IT-FORM-002"
                           >
-                            <Printer size={16} />
+                            <Printer size={15} />
                           </button>
 
                           <button 
@@ -483,7 +472,7 @@ export default function EmployeeListPage() {
                             className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                             title="จัดการโควต้าวันลา"
                           >
-                            <CalendarRange size={16} />
+                            <CalendarRange size={15} />
                           </button>
 
                           {isAdmin && employee.email && (
@@ -492,7 +481,7 @@ export default function EmployeeListPage() {
                               className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                               title="ส่งอีเมลต้อนรับผู้ใช้ใหม่"
                             >
-                              <Mail size={16} />
+                              <Mail size={15} />
                             </button>
                           )}
 
@@ -501,7 +490,7 @@ export default function EmployeeListPage() {
                             className="p-1.5 text-slate-400 hover:text-[#f89919] hover:bg-orange-50 rounded-lg transition-colors"
                             title="แก้ไขข้อมูลผู้ใช้งาน"
                           >
-                            <Edit size={16} />
+                            <Edit size={15} />
                           </button>
                           
                           {employee.status !== 'Inactive' && employee.status !== 'Resigned' && (
@@ -510,7 +499,7 @@ export default function EmployeeListPage() {
                               className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                               title="พ้นสภาพ / ปิดการใช้งาน"
                             >
-                              <UserMinus size={16} />
+                              <UserMinus size={15} />
                             </button>
                           )}
                         </div>
@@ -519,7 +508,7 @@ export default function EmployeeListPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" className="text-center py-12 text-slate-400">ไม่พบข้อมูลผู้ใช้งานตามเงื่อนไขการค้นหา</td>
+                    <td colSpan="5" className="text-center py-12 text-slate-400">ไม่พบข้อมูลผู้ใช้งานตามเงื่อนไขการค้นหา</td>
                   </tr>
                 )}
               </tbody>
