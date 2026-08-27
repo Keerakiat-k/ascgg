@@ -38,6 +38,8 @@ backend/seed*.js
 backend/test*.js
 backend/setup*.js
 backend/update*.js
+backend/create*.js
+backend/fix*.js
 *.bat
 *.ps1
 
