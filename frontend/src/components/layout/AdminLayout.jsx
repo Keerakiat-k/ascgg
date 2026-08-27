@@ -738,14 +738,22 @@ export default function AdminLayout() {
               </button>
 
               {isNotifOpen && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] sm:w-96 max-w-sm bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden text-xs">
-                  <div className="p-3.5 bg-slate-900 text-white font-bold flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Bell size={16} className="text-[#f89919]" />
-                      <span>การแจ้งเตือนระบบ ({totalNotifs})</span>
+                <>
+                  {/* Mobile Backdrop */}
+                  <div 
+                    className="fixed inset-0 z-40 bg-slate-900/30 backdrop-blur-[1px] sm:hidden"
+                    onClick={() => setIsNotifOpen(false)}
+                  />
+                  
+                  {/* Dropdown Container */}
+                  <div className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-16 sm:top-full sm:mt-2 sm:w-96 max-w-sm mx-auto sm:mx-0 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden text-xs animate-in fade-in zoom-in-95 duration-150">
+                    <div className="p-3.5 bg-slate-900 text-white font-bold flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Bell size={16} className="text-[#f89919]" />
+                        <span>การแจ้งเตือนระบบ ({totalNotifs})</span>
+                      </div>
+                      <button onClick={() => setIsNotifOpen(false)} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">✕</button>
                     </div>
-                    <button onClick={() => setIsNotifOpen(false)} className="text-slate-400 hover:text-white p-1">✕</button>
-                  </div>
 
                   <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
                     {totalNotifs === 0 ? (
@@ -828,6 +836,7 @@ export default function AdminLayout() {
                     )}
                   </div>
                 </div>
+                </>
               )}
             </div>
             <div className="w-px h-6 bg-slate-200 mx-1"></div>
