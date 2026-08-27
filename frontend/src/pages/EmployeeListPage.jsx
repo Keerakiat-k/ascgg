@@ -12,6 +12,9 @@ export default function EmployeeListPage() {
   const [showResigned, setShowResigned] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [selectedCompany, setSelectedCompany] = useState('ALL');
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   // ดึงข้อมูล Role เพื่อใช้เช็คสิทธิ์
   const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
   const mockRole = localStorage.getItem('mockRole');
@@ -74,7 +77,7 @@ export default function EmployeeListPage() {
     Swal.fire({
       title: 'ระบุวันที่ลาออก',
       html: `
-        <div class="text-sm text-gray-500 mb-2">กรุณาระบุวันที่ ${empName} พ้นสภาพพนักงาน:</div>
+        <div class="text-sm text-slate-500 mb-2">กรุณาระบุวันที่ ${empName} พ้นสภาพพนักงาน:</div>
         <input type="date" id="resign-date" class="swal2-input" value="${new Date().toISOString().split('T')[0]}">
       `,
       icon: 'warning',
@@ -103,7 +106,7 @@ export default function EmployeeListPage() {
 
           if (response.ok && data.status === 'success') {
             Swal.fire('สำเร็จ!', 'อัปเดตสถานะและวันที่ลาออกเรียบร้อยแล้ว', 'success');
-            fetchEmployees(); // 🌟 รีเฟรชตารางใหม่ทันที 🌟
+            fetchEmployees();
           } else {
             throw new Error(data.message);
           }
@@ -114,26 +117,39 @@ export default function EmployeeListPage() {
     });
   };
 
-  // กรองข้อมูลตามช่องค้นหา (รหัส หรือ ชื่อ) และสถานะการลาออก
+  // กรองข้อมูลตามช่องค้นหา, บริษัท และสถานะการลาออก
   const filteredEmployees = employees.filter(emp => {
     const matchesSearch = (emp.employee_code && emp.employee_code.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                          (emp.full_name_th && emp.full_name_th.toLowerCase().includes(searchTerm.toLowerCase()));
+                          (emp.full_name_th && emp.full_name_th.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (emp.first_name_en && emp.first_name_en.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (emp.last_name_en && emp.last_name_en.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (emp.email && emp.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (emp.position && emp.position.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // ถ้าระบุว่าไม่แสดงคนออก (showResigned = false) คนที่สถานะไม่ใช่ Active จะถูกซ่อน
+    const matchesCompany = selectedCompany === 'ALL' || (emp.company_prefix && emp.company_prefix.toUpperCase() === selectedCompany.toUpperCase());
     const matchesStatus = showResigned ? true : emp.status === 'Active';
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesCompany && matchesStatus;
   });
+
+  // Calculate Company Counts
+  const companyCounts = employees.reduce((acc, emp) => {
+    const p = (emp.company_prefix || 'OTHER').toUpperCase();
+    acc[p] = (acc[p] || 0) + 1;
+    return acc;
+  }, {});
+
+  const companiesList = ['ALL', 'AIC', 'AIA', 'SQT', 'CST', 'QPM', 'AGC', 'AEP', 'ASCG'];
 
   // 3. ฟังก์ชันส่งอีเมลต้อนรับพนักงานใหม่
   const handleSendWelcomeEmail = async (employee) => {
     Swal.fire({
       title: 'ยืนยันการส่งอีเมล',
-      text: `ต้องการส่งอีเมลต้อนรับพนักงานใหม่ไปที่ ${employee.full_name_th} ใช่หรือไม่?`,
+      text: `ต้องการส่งอีเมลต้อนรับพนักงานใหม่ไปที่ ${employee.full_name_th} (${employee.email}) ใช่หรือไม่?`,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
+      confirmButtonColor: '#f89919',
+      cancelButtonColor: '#94a3b8',
       confirmButtonText: 'ใช่, ส่งเลย!',
       cancelButtonText: 'ยกเลิก'
     }).then(async (result) => {
@@ -160,12 +176,11 @@ export default function EmployeeListPage() {
 
   // Pagination Logic
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
   
-  // รีเซ็ตหน้ากลับไปหน้าแรก เมื่อมีการค้นหาใหม่
+  // รีเซ็ตหน้ากลับไปหน้าแรก เมื่อมีการค้นหาหรือเปลี่ยนตัวกรอง
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, selectedCompany, showResigned, itemsPerPage]);
 
   const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -240,149 +255,260 @@ export default function EmployeeListPage() {
         </div>
 
         {/* Page Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <Users className="text-[#f89919]" />
-            รายการผู้ใช้งานระบบ (System Users)
-          </h1>
-          <p className="text-[#ae8a68] mt-1">รายชื่อผู้ใช้งานและสิทธิ์การถือครองทรัพย์สินบริษัท (PC / Notebook / IT Assets)</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <Users className="text-[#f89919]" />
+              รายการผู้ใช้งานระบบ (System Users)
+            </h1>
+            <p className="text-slate-500 text-sm mt-0.5">จัดการข้อมูลบุคลากร สิทธิ์การเข้าถึง และการถือครองอุปกรณ์ไอทีประจำตัว</p>
+          </div>
+
+          <button 
+            onClick={() => navigate('/employees/new')}
+            className="inline-flex items-center justify-center gap-2 bg-[#f89919] hover:bg-[#d97c08] text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow-md shadow-[#f89919]/20 active:scale-[0.98] transition-all whitespace-nowrap"
+          >
+            <Plus size={18} />
+            <span>+ เพิ่มผู้ใช้งานใหม่</span>
+          </button>
         </div>
 
-        {/* Actions Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#dfe0df] shadow-sm mb-6">
+        {/* 🏢 Company Filter Tabs Bar */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-4">
+          {companiesList.map(comp => {
+            const count = comp === 'ALL' ? employees.length : (companyCounts[comp] || 0);
+            const isSelected = selectedCompany === comp;
+            return (
+              <button
+                key={comp}
+                onClick={() => setSelectedCompany(comp)}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
+                  isSelected
+                    ? 'bg-[#f89919] text-white shadow-xs font-bold'
+                    : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200'
+                }`}
+              >
+                <span>{comp === 'ALL' ? '🏢 ทั้งหมด' : `🏢 ${comp}`}</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  isSelected ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 🔍 Search & Filters Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm mb-6">
           
           <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full md:w-auto">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#ae8a68]" size={18} />
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
               <input 
                 type="text" 
-                placeholder="ค้นหารหัส หรือ ชื่อผู้ใช้..." 
-                className="pl-10 pr-4 py-2 border border-[#dfe0df] rounded-xl focus:ring-2 focus:ring-[#f89919]/40 focus:border-[#f89919] outline-none w-full text-sm"
+                placeholder="ค้นหารหัส, ชื่อ-สกุล (ไทย/EN), อีเมล, ตำแหน่ง..." 
+                className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#f89919]/30 focus:border-[#f89919] outline-none w-full text-xs sm:text-sm text-slate-800 placeholder-slate-400"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             
-            <label className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm text-slate-600 hover:text-slate-900 bg-[#fff8f0] px-3 py-2 rounded-xl border border-[#dfe0df] transition-colors">
+            <label className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm text-slate-600 hover:text-slate-900 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 transition-colors whitespace-nowrap">
               <input 
                 type="checkbox" 
                 checked={showResigned} 
                 onChange={(e) => setShowResigned(e.target.checked)}
-                className="w-4 h-4 text-[#f89919] rounded border-[#dfe0df] focus:ring-[#f89919]"
+                className="w-4 h-4 text-[#f89919] rounded border-slate-300 focus:ring-[#f89919]"
               />
               <span>แสดงผู้ใช้ที่ปิดใช้งาน (Resigned)</span>
             </label>
           </div>
-          
-          <button 
-            onClick={() => navigate('/employees/new')}
-            className="w-full sm:w-auto bg-[#f89919] hover:bg-[#d97c08] text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-semibold text-sm shadow-sm"
-          >
-            <Plus size={18} />
-            เพิ่มผู้ใช้งานใหม่
-          </button>
+
+          <div className="flex items-center justify-between sm:justify-end gap-3 text-xs text-slate-500">
+            <div className="flex items-center gap-1.5">
+              <span>แสดง:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-slate-700 font-semibold outline-none cursor-pointer text-xs"
+              >
+                <option value={10}>10 รายการ</option>
+                <option value={25}>25 รายการ</option>
+                <option value={50}>50 รายการ</option>
+                <option value={100}>100 รายการ</option>
+              </select>
+            </div>
+            
+            <div className="text-slate-400">
+              พบ <span className="font-bold text-slate-800">{filteredEmployees.length}</span> คน
+            </div>
+          </div>
+
         </div>
 
         {/* Table & Mobile Cards Section */}
-        <div className="bg-white rounded-2xl border border-[#dfe0df] shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
           
           {/* 💻 Desktop Table View (md:block) */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-sm">
               <thead>
-                <tr className="bg-[#fff8f0] border-b border-[#dfe0df] text-sm text-slate-700">
-                  <th className="px-6 py-4 font-semibold">รหัสผู้ใช้</th>
-                  <th className="px-6 py-4 font-semibold">ผู้ใช้งานระบบ</th>
-                  <th className="px-6 py-4 font-semibold">บริษัท / แผนก</th>
-                  <th className="px-6 py-4 font-semibold">ตำแหน่ง</th>
-                  <th className="px-6 py-4 font-semibold">อีเมลองค์กร</th>
-                  <th className="px-6 py-4 font-semibold">ทรัพย์สินที่ถือครอง</th>
-                  <th className="px-6 py-4 font-semibold">สถานะ</th>
-                  <th className="px-6 py-4 font-semibold text-right">จัดการ</th>
+                <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-5 py-3.5">รหัสพนักงาน</th>
+                  <th className="px-5 py-3.5">ข้อมูลผู้ใช้งาน</th>
+                  <th className="px-5 py-3.5">บริษัท / แสนก</th>
+                  <th className="px-5 py-3.5">ตำแหน่งงาน</th>
+                  <th className="px-5 py-3.5">อีเมลองค์กร</th>
+                  <th className="px-5 py-3.5 text-center">อุปกรณ์ IT</th>
+                  <th className="px-5 py-3.5 text-center">สถานะ</th>
+                  <th className="px-5 py-3.5 text-right">จัดการ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#dfe0df]">
+              <tbody className="divide-y divide-slate-100">
                 {isLoading ? (
                   <tr>
-                    <td colSpan="8" className="text-center py-12 text-slate-400">
+                    <td colSpan="8" className="text-center py-16 text-slate-400">
                       <div className="flex flex-col items-center gap-2">
                         <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#f89919] border-t-transparent"></div>
-                        <span>กำลังโหลดข้อมูลผู้ใช้งานระบบ...</span>
+                        <span className="text-xs font-medium">กำลังโหลดข้อมูลผู้ใช้งานระบบ...</span>
                       </div>
                     </td>
                   </tr>
                 ) : currentEmployees.length > 0 ? (
                   currentEmployees.map((employee) => (
-                    <tr key={employee.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <span className="font-semibold text-slate-900">{employee.employee_code}</span>
+                    <tr key={employee.id} className="hover:bg-slate-50/70 transition-colors">
+                      
+                      {/* 1. Employee Code */}
+                      <td className="px-5 py-3.5 whitespace-nowrap">
+                        <span className="font-mono font-bold text-xs bg-slate-100 text-slate-800 px-2 py-1 rounded border border-slate-200">
+                          {employee.employee_code}
+                        </span>
                       </td>
-                      <td className="px-6 py-4">
+
+                      {/* 2. Employee Profile & Name */}
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           {employee.profile_image ? (
-                            <img src={`${import.meta.env.VITE_API_BASE_URL}${employee.profile_image}`} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-slate-200" />
+                            <img src={`${import.meta.env.VITE_API_BASE_URL}${employee.profile_image}`} alt="Profile" className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0" />
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
-                              <User size={18} className="text-slate-400" />
+                            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 shrink-0 text-slate-400">
+                              <User size={16} />
                             </div>
                           )}
                           <div>
-                            <div className="text-slate-900 font-bold">{employee.full_name_th}</div>
-                            {employee.nickname && <div className="text-xs text-slate-400">({employee.nickname})</div>}
+                            <div className="text-slate-900 font-bold text-sm">
+                              {employee.full_name_th || `${employee.first_name_th || ''} ${employee.last_name_th || ''}`.trim()}
+                              {employee.nickname && <span className="text-slate-400 font-normal text-xs ml-1">({employee.nickname})</span>}
+                            </div>
+                            {(employee.first_name_en || employee.last_name_en) && (
+                              <div className="text-xs text-slate-400">
+                                {employee.first_name_en} {employee.last_name_en}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-slate-700 font-medium">
-                        <div>{employee.company_prefix}</div>
-                        <div className="text-xs text-slate-400">{employee.department_name || 'ทั่วไป'}</div>
+
+                      {/* 3. Company & Dept */}
+                      <td className="px-5 py-3.5 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-xs px-2 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200">
+                            {employee.company_prefix}
+                          </span>
+                          <span className="text-xs text-slate-600">
+                            {employee.department_name || 'ทั่วไป'}
+                          </span>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 text-slate-600 text-sm">{employee.position || '-'}</td>
-                      <td className="px-6 py-4 text-slate-600 text-xs font-mono">{employee.email || '-'}</td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-[#f89919] border border-amber-200 rounded-lg text-xs font-bold">
+
+                      {/* 4. Position */}
+                      <td className="px-5 py-3.5 text-slate-700 text-xs font-medium">
+                        {employee.position || '-'}
+                      </td>
+
+                      {/* 5. Email */}
+                      <td className="px-5 py-3.5 whitespace-nowrap">
+                        {employee.email ? (
+                          <a href={`mailto:${employee.email}`} className="text-xs font-mono text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1">
+                            <Mail size={13} className="text-slate-400 shrink-0" />
+                            <span>{employee.email}</span>
+                          </a>
+                        ) : (
+                          <span className="text-slate-400 text-xs font-mono">-</span>
+                        )}
+                      </td>
+
+                      {/* 6. Assets Held */}
+                      <td className="px-5 py-3.5 text-center whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold ${
+                          (employee.asset_count || 0) > 0 
+                            ? 'bg-amber-50 text-[#f89919] border border-amber-200' 
+                            : 'bg-slate-100 text-slate-400 border border-slate-200'
+                        }`}>
                           💻 {employee.asset_count || 0} เครื่อง
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap shadow-xs ${
+
+                      {/* 7. Status */}
+                      <td className="px-5 py-3.5 text-center whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-xs ${
                           employee.status === 'Active' 
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
                             : 'bg-rose-50 text-rose-700 border border-rose-200'
                         }`}>
-                          <span className={`w-2 h-2 rounded-full ${
+                          <span className={`w-1.5 h-1.5 rounded-full ${
                             employee.status === 'Active' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
                           }`} />
                           {employee.status === 'Active' ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
                         </span>
                       </td>
                       
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-1">
-                          {isAdmin && (
+                      {/* 8. Actions */}
+                      <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1">
+                          
+                          <button 
+                            onClick={() => triggerPrint(employee)}
+                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="พิมพ์แบบฟอร์ม IT-FORM-002"
+                          >
+                            <Printer size={16} />
+                          </button>
+
+                          <button 
+                            onClick={() => handleOpenLeaveModal(employee)}
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            title="จัดการโควต้าวันลา"
+                          >
+                            <CalendarRange size={16} />
+                          </button>
+
+                          {isAdmin && employee.email && (
                             <button 
                               onClick={() => handleSendWelcomeEmail(employee)}
-                              className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                              className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                               title="ส่งอีเมลต้อนรับผู้ใช้ใหม่"
                             >
-                              <Mail size={18} />
+                              <Mail size={16} />
                             </button>
                           )}
 
                           <button 
                             onClick={() => navigate(`/edit-employee/${employee.id}`)}
-                            className="p-2 text-slate-400 hover:text-[#f89919] hover:bg-[#fff8f0] rounded-lg transition-colors"
+                            className="p-1.5 text-slate-400 hover:text-[#f89919] hover:bg-orange-50 rounded-lg transition-colors"
                             title="แก้ไขข้อมูลผู้ใช้งาน"
                           >
-                            <Edit size={18} />
+                            <Edit size={16} />
                           </button>
                           
-                          {employee.status !== 'Inactive' && (
+                          {employee.status !== 'Inactive' && employee.status !== 'Resigned' && (
                             <button 
-                              onClick={() => handleResign(employee.id, employee.full_name_th)}
-                              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                              title="พ้นสภาพ/ลาออก"
+                              onClick={() => handleResign(employee.id, employee.full_name_th || employee.first_name_th)}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                              title="พ้นสภาพ / ปิดการใช้งาน"
                             >
-                              <UserMinus size={18} />
+                              <UserMinus size={16} />
                             </button>
                           )}
                         </div>
@@ -391,7 +517,7 @@ export default function EmployeeListPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" className="text-center py-12 text-slate-400">ไม่พบข้อมูลพนักงาน</td>
+                    <td colSpan="8" className="text-center py-12 text-slate-400">ไม่พบข้อมูลผู้ใช้งานตามเงื่อนไขการค้นหา</td>
                   </tr>
                 )}
               </tbody>
