@@ -367,27 +367,16 @@ export default function AssetAdminPage() {
       ...base,
       fontSize: '12px',
       minHeight: '38px',
+      paddingLeft: '2px',
+      paddingRight: '2px',
       borderRadius: '0.5rem',
-      borderColor: state.isFocused ? '#f89919' : '#e2e8f0',
-      boxShadow: state.isFocused ? '0 0 0 2px rgba(248, 153, 25, 0.2)' : 'none',
+      borderColor: state.isFocused ? '#f89919' : '#cbd5e1',
+      boxShadow: state.isFocused ? '0 0 0 2px rgba(248, 153, 25, 0.25)' : 'none',
       '&:hover': {
-        borderColor: state.isFocused ? '#f89919' : '#cbd5e1'
+        borderColor: state.isFocused ? '#f89919' : '#94a3b8'
       },
       backgroundColor: '#ffffff',
       cursor: 'pointer'
-    }),
-    valueContainer: (base) => ({
-      ...base,
-      padding: '2px 8px',
-      display: 'flex',
-      alignItems: 'center'
-    }),
-    input: (base) => ({
-      ...base,
-      margin: '0',
-      padding: '0',
-      fontSize: '12px',
-      color: '#0f172a'
     }),
     menu: (base) => ({
       ...base,
@@ -406,7 +395,6 @@ export default function AssetAdminPage() {
       padding: '8px 12px',
       cursor: 'pointer',
       fontSize: '12px',
-      lineHeight: '1.4',
       '&:active': {
         backgroundColor: '#f89919',
         color: 'white'
@@ -415,16 +403,13 @@ export default function AssetAdminPage() {
     placeholder: (base) => ({
       ...base,
       color: '#94a3b8',
-      fontSize: '12px',
-      margin: 0
+      fontSize: '12px'
     }),
     singleValue: (base) => ({
       ...base,
       color: '#0f172a',
       fontWeight: 500,
-      fontSize: '12px',
-      margin: 0,
-      lineHeight: '1.4'
+      fontSize: '12px'
     })
   };
 
