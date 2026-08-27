@@ -9,7 +9,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # ===========================
-# Environment Files (ห้าม push ข้ึน GitHub เด็ดขาด)
+# Environment Files
 # ===========================
 .env
 .env.local
@@ -25,21 +25,32 @@ frontend/dist/
 frontend/.vite/
 
 # ===========================
-# Uploads (ไฟล์ที่ผู้ใช้อัปโหลด)
+# Uploads & User Files
 # ===========================
 backend/uploads/
+user/
 
 # ===========================
-# Excel / Office ข้อมูลภายใน (sensitive)
+# Internal Scripts & Test Tools
+# ===========================
+backend/scripts/
+backend/seed*.js
+backend/test*.js
+backend/setup*.js
+backend/update*.js
+*.bat
+*.ps1
+
+# ===========================
+# Excel / PDF / Data Dumps
 # ===========================
 *.xlsx
 *.xls
 *.csv
-
-# ===========================
-# Database dump (มี credentials)
-# ===========================
+*.pdf
 *.sql
+*.txt
+*.exe
 
 # ===========================
 # OS / Editor junk
@@ -53,22 +64,14 @@ desktop.ini
 .idea/
 
 # ===========================
-# Logs
+# Logs & Docs
 # ===========================
 *.log
 logs/
-
-# ===========================
-# AI Context & Summaries (internal docs)
-# ===========================
 AI_CONTEXT/
 Daily_Summary*.md
 PROJECT_SUMMARY.md
-*.bat
-start_project.ps1
-ascg_g_db.sql
 docs/
-cloudflared.exe
 config.yml
 
 
