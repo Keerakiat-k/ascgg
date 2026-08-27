@@ -354,15 +354,15 @@ export default function EmployeeListPage() {
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
-                  <th className="px-5 py-3.5">รหัสพนักงาน</th>
-                  <th className="px-5 py-3.5">ข้อมูลผู้ใช้งาน</th>
-                  <th className="px-5 py-3.5">บริษัท / แสนก</th>
-                  <th className="px-5 py-3.5">ตำแหน่งงาน</th>
-                  <th className="px-5 py-3.5">อีเมลองค์กร</th>
-                  <th className="px-5 py-3.5 text-center">อุปกรณ์ IT</th>
-                  <th className="px-5 py-3.5 text-center">สถานะ</th>
-                  <th className="px-5 py-3.5 text-right">จัดการ</th>
+                <tr className="bg-slate-50/90 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-5 py-3.5 whitespace-nowrap">รหัสพนักงาน</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">ข้อมูลผู้ใช้งาน</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">บริษัท / แผนก</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">ตำแหน่งงาน</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">อีเมลองค์กร</th>
+                  <th className="px-5 py-3.5 text-center whitespace-nowrap">อุปกรณ์ IT</th>
+                  <th className="px-5 py-3.5 text-center whitespace-nowrap">สถานะ</th>
+                  <th className="px-5 py-3.5 text-right whitespace-nowrap">จัดการ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -381,28 +381,28 @@ export default function EmployeeListPage() {
                       
                       {/* 1. Employee Code */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
-                        <span className="font-mono font-bold text-xs bg-slate-100 text-slate-800 px-2 py-1 rounded border border-slate-200">
+                        <span className="font-mono font-bold text-xs bg-slate-100 text-slate-800 px-2.5 py-1 rounded-lg border border-slate-200">
                           {employee.employee_code}
                         </span>
                       </td>
 
-                      {/* 2. Employee Profile & Name */}
-                      <td className="px-5 py-3.5">
+                      {/* 2. Employee Profile & Name (Single Line) */}
+                      <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           {employee.profile_image ? (
                             <img src={`${import.meta.env.VITE_API_BASE_URL}${employee.profile_image}`} alt="Profile" className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0" />
                           ) : (
-                            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 shrink-0 text-slate-400">
+                            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 shrink-0 text-slate-400 font-semibold text-xs">
                               <User size={16} />
                             </div>
                           )}
-                          <div>
-                            <div className="text-slate-900 font-bold text-sm">
+                          <div className="whitespace-nowrap">
+                            <div className="text-slate-900 font-bold text-sm whitespace-nowrap">
                               {employee.full_name_th || `${employee.first_name_th || ''} ${employee.last_name_th || ''}`.trim()}
                               {employee.nickname && <span className="text-slate-400 font-normal text-xs ml-1">({employee.nickname})</span>}
                             </div>
                             {(employee.first_name_en || employee.last_name_en) && (
-                              <div className="text-xs text-slate-400">
+                              <div className="text-xs text-slate-400 whitespace-nowrap">
                                 {employee.first_name_en} {employee.last_name_en}
                               </div>
                             )}
@@ -410,27 +410,29 @@ export default function EmployeeListPage() {
                         </div>
                       </td>
 
-                      {/* 3. Company & Dept */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-xs px-2 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200">
+                      {/* 3. Company & Dept (Multiline when long) */}
+                      <td className="px-5 py-3.5 min-w-[180px] max-w-[240px]">
+                        <div className="flex flex-col items-start gap-1">
+                          <span className="font-bold text-xs px-2 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200 shrink-0 inline-block">
                             {employee.company_prefix}
                           </span>
-                          <span className="text-xs text-slate-600">
+                          <span className="text-xs text-slate-600 leading-relaxed break-words">
                             {employee.department_name || 'ทั่วไป'}
                           </span>
                         </div>
                       </td>
 
-                      {/* 4. Position */}
-                      <td className="px-5 py-3.5 text-slate-700 text-xs font-medium">
-                        {employee.position || '-'}
+                      {/* 4. Position (Multiline when long) */}
+                      <td className="px-5 py-3.5 min-w-[150px] max-w-[200px]">
+                        <div className="text-slate-700 text-xs font-medium leading-relaxed break-words">
+                          {employee.position || '-'}
+                        </div>
                       </td>
 
                       {/* 5. Email */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         {employee.email ? (
-                          <a href={`mailto:${employee.email}`} className="text-xs font-mono text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1">
+                          <a href={`mailto:${employee.email}`} className="text-xs font-mono text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1.5">
                             <Mail size={13} className="text-slate-400 shrink-0" />
                             <span>{employee.email}</span>
                           </a>
